@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Font from 'expo-font';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { TutorialProvider } from './src/context/TutorialContext';
 import { COLORS, ROLE } from './src/theme';
 
 // ── Shared ────────────────────────────────────────────────────────────────────
@@ -118,7 +119,12 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <RootNavigator />
+      {/* TutorialProvider sits ABOVE the navigator so coach marks can cover
+          the tab bar while staying in the same window as the elements they
+          measure — both are required for the highlights to line up. */}
+      <TutorialProvider>
+        <RootNavigator />
+      </TutorialProvider>
     </AuthProvider>
   );
 }

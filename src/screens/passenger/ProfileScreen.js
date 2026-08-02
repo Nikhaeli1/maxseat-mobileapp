@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, StatusBar, Alert, ActivityIndicator,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { updatePassengerProfile, changePassengerPassword } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
@@ -13,6 +13,14 @@ const T = ROLE.passenger;
 
 export default function ProfileScreen() {
   const { user, logout, switchRole, requestDashTutorial } = useAuth();
+  const navigation = useNavigation();
+
+  // The tutorial highlights elements on the Home tab, so jump there first —
+  // then flag the request, which HomeScreen picks up when it gains focus.
+  const handleReplayTutorial = useCallback(() => {
+    navigation.navigate('PUVs');
+    requestDashTutorial('passenger');
+  }, [navigation, requestDashTutorial]);
 
   const [mobile,     setMobile]     = useState(user?.mobile || '');
   const [saving,     setSaving]     = useState(false);
@@ -177,7 +185,7 @@ export default function ProfileScreen() {
         {/* TUTORIAL */}
         <TouchableOpacity
           style={styles.tutorialBtn}
-          onPress={() => requestDashTutorial('passenger')}
+          onPress={handleReplayTutorial}
           activeOpacity={0.85}
         >
           <Text style={styles.tutorialIcon}>▶</Text>

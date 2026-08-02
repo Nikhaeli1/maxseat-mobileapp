@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   loginEnforcer, logoutEnforcer, saveToken, getToken,
@@ -86,8 +86,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ── Dashboard coach-mark tutorial request ─────────────────────────────────
-  const requestDashTutorial    = (role) => setDashTutorialRequest(role);
-  const clearDashTutorialRequest = () => setDashTutorialRequest(null);
+  // useCallback keeps these stable across renders. Without it, any effect that
+  // depends on them re-runs on every render and cancels its own pending work.
+  const requestDashTutorial = useCallback(
+    (role) => setDashTutorialRequest(role), []);
+  const clearDashTutorialRequest = useCallback(
+    () => setDashTutorialRequest(null), []);
 
   // ── Logout ────────────────────────────────────────────────────────────────
   const logout = async () => {

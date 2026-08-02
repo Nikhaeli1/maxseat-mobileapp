@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, RefreshControl, StatusBar,
@@ -10,7 +10,7 @@ import { fetchAllPuvs } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
 import AnimatedListItem from '../../components/AnimatedListItem';
-import TutorialOverlay from '../../components/TutorialOverlay';
+import { useTutorial } from '../../context/TutorialContext';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.passenger;
@@ -19,17 +19,45 @@ const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_passenger';
 
 export default function HomeScreen({ navigation }) {
   const { user, dashTutorialRequest, clearDashTutorialRequest } = useAuth();
-  const [puvs,       setPuvs]             = useState([]);
-  const [filtered,   setFiltered]         = useState([]);
-  const [query,      setQuery]            = useState('');
-  const [loading,    setLoading]          = useState(true);
-  const [refreshing, setRefreshing]       = useState(false);
-  const [showTutorial, setShowTutorial]   = useState(false);
+  const { startTutorial } = useTutorial();
+  const [puvs,       setPuvs]       = useState([]);
+  const [filtered,   setFiltered]   = useState([]);
+  const [query,      setQuery]      = useState('');
+  const [loading,    setLoading]    = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Refs for coach-mark spotlight
   const topBarRef  = useRef(null);
   const searchRef  = useRef(null);
   const listRef    = useRef(null);
+
+  // Tutorial steps — stable identity (they only close over refs)
+  const tutorialSteps = useRef([
+    {
+      targetRef: topBarRef,
+      icon: '🚌',
+      title: 'Live PUV Tracker',
+      desc: 'This is your main dashboard, showing all active PUVs on the Bugo–Igpit corridor in real time. Critical alerts appear here.',
+    },
+    {
+      targetRef: searchRef,
+      icon: '🔍',
+      title: 'Smart Search',
+      desc: 'Search by plate number, driver name, or route to instantly filter the list. Results update as you type.',
+    },
+    {
+      targetRef: listRef,
+      icon: '🎫',
+      title: 'PUV Cards',
+      desc: 'Each card shows a vehicle\'s real-time capacity, status, driver, and location. Tap any card to see full details or file a violation report.',
+    },
+    {
+      targetRect: { h: 82, fromBottom: true },
+      icon: '🧭',
+      title: 'Bottom Navigation',
+      desc: 'Use these tabs to switch between the Live Tracker, Map View, your submitted Reports, and Profile settings.',
+    },
+  ]).current;
 
   const load = useCallback(async (isRefresh = false) => {
     isRefresh ? setRefreshing(true) : setLoading(true);
@@ -49,23 +77,44 @@ export default function HomeScreen({ navigation }) {
   // Load data on focus
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  // Check if tutorial should show (first visit OR replay request from Profile)
-  useFocusEffect(useCallback(() => {
-    (async () => {
-      if (dashTutorialRequest === 'passenger') {
-        clearDashTutorialRequest();
-        setShowTutorial(true);
-      } else {
-        const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
-        if (!seen) setShowTutorial(true);
-      }
-    })();
-  }, [dashTutorialRequest, clearDashTutorialRequest]));
-
   const handleTutorialDone = useCallback(async () => {
     await AsyncStorage.setItem(DASH_TUTORIAL_KEY, '1');
-    setShowTutorial(false);
   }, []);
+
+  const launchTutorial = useCallback(() => {
+    startTutorial(tutorialSteps, {
+      accentColor: T.primary,
+      onDone: handleTutorialDone,
+    });
+  }, [startTutorial, tutorialSteps, handleTutorialDone]);
+
+  // ── First visit ──────────────────────────────────────────────────────────
+  // Guarded by a ref so re-focusing the tab doesn't re-check or re-trigger.
+  const firstVisitChecked = useRef(false);
+  useFocusEffect(useCallback(() => {
+    if (firstVisitChecked.current) return;
+    firstVisitChecked.current = true;
+
+    let timer;
+    (async () => {
+      const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
+      if (!seen) timer = setTimeout(launchTutorial, 500);
+    })();
+    return () => clearTimeout(timer);
+  }, [launchTutorial]));
+
+  // ── Replay requested from Profile ────────────────────────────────────────
+  // The flag is cleared INSIDE the timeout, not before it. Clearing it early
+  // changes the dependency, which re-runs this effect and cancels the very
+  // timer it just scheduled — that's why replay silently did nothing.
+  useEffect(() => {
+    if (dashTutorialRequest !== 'passenger') return undefined;
+    const timer = setTimeout(() => {
+      clearDashTutorialRequest();
+      launchTutorial();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [dashTutorialRequest, clearDashTutorialRequest, launchTutorial]);
 
   const handleSearch = (text) => {
     setQuery(text);
@@ -124,30 +173,6 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
     );
   };
-
-  // Tutorial step definitions
-  const tutorialSteps = [
-    {
-      targetRef: topBarRef,
-      title: 'Live PUV Tracker',
-      desc: 'This is your main dashboard, showing all active PUVs on the Bugo–Igpit corridor in real time. Critical alerts appear here.',
-    },
-    {
-      targetRef: searchRef,
-      title: 'Smart Search',
-      desc: 'Search by plate number, driver name, or route to instantly filter the list. Results update as you type.',
-    },
-    {
-      targetRef: listRef,
-      title: 'PUV Cards',
-      desc: 'Each card shows a vehicle\'s real-time capacity, status, driver, and location. Tap any card to see full details or file a violation report.',
-    },
-    {
-      targetRect: { x: 0, y: H - 82, w: W, h: 82 },
-      title: 'Bottom Navigation',
-      desc: 'Use these tabs to switch between the Live Tracker, Map View, your submitted Reports, and Profile settings.',
-    },
-  ];
 
   return (
     <View style={styles.root}>
@@ -229,14 +254,6 @@ export default function HomeScreen({ navigation }) {
           />
         )}
       </View>
-
-      {/* TUTORIAL OVERLAY */}
-      <TutorialOverlay
-        visible={showTutorial}
-        steps={tutorialSteps}
-        accentColor={T.primary}
-        onDone={handleTutorialDone}
-      />
     </View>
   );
 }

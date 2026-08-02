@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import ViolationCard from '../../components/ViolationCard';
 import AnimatedListItem from '../../components/AnimatedListItem';
 import Logo from '../../components/Logo';
-import TutorialOverlay from '../../components/TutorialOverlay';
+import { useTutorial } from '../../context/TutorialContext';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.enforcer;
@@ -20,11 +20,11 @@ const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_enforcer';
 
 export default function DispatchScreen({ navigation }) {
   const { user, logout, switchRole } = useAuth();
+  const { startTutorial } = useTutorial();
   const [orders,     setOrders]      = useState([]);
   const [loading,    setLoading]     = useState(true);
   const [refreshing, setRefreshing]  = useState(false);
   const [view,       setView]        = useState('list');
-  const [showTutorial, setShowTutorial] = useState(false);
 
   const [region, setRegion] = useState({
     latitude: 8.4822, longitude: 124.6472,
@@ -36,6 +36,34 @@ export default function DispatchScreen({ navigation }) {
   const toggleRef   = useRef(null);
   const listRef     = useRef(null);
   const actionsRef  = useRef(null);
+
+  // Tutorial steps — stable identity (they only close over refs)
+  const tutorialSteps = useRef([
+    {
+      targetRef: topBarRef,
+      icon: '🛡',
+      title: 'Dispatch Dashboard',
+      desc: 'Your command center showing all active violations on the corridor. Critical violations are flagged with a red badge.',
+    },
+    {
+      targetRef: toggleRef,
+      icon: '🗺',
+      title: 'List & Map Views',
+      desc: 'Switch between List view (violations sorted by severity) and Map view (violations pinned on the live route map).',
+    },
+    {
+      targetRef: listRef,
+      icon: '⚠',
+      title: 'Violation Cards',
+      desc: 'Each card shows a PUV with active violations, severity, and location. Tap any card to open the Action Screen and respond.',
+    },
+    {
+      targetRef: actionsRef,
+      icon: '⚡',
+      title: 'Quick Actions',
+      desc: 'Replay this tutorial at any time, switch to Passenger mode to view PUVs as a commuter, or log out to end your enforcer shift.',
+    },
+  ]).current;
 
   const load = useCallback(async (isRefresh = false) => {
     isRefresh ? setRefreshing(true) : setLoading(true);
@@ -61,18 +89,26 @@ export default function DispatchScreen({ navigation }) {
   // Load data on focus
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  // Check tutorial on first visit
-  useFocusEffect(useCallback(() => {
-    (async () => {
-      const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
-      if (!seen) setShowTutorial(true);
-    })();
-  }, []));
-
   const handleTutorialDone = useCallback(async () => {
     await AsyncStorage.setItem(DASH_TUTORIAL_KEY, '1');
-    setShowTutorial(false);
   }, []);
+
+  const launchTutorial = useCallback(() => {
+    startTutorial(tutorialSteps, {
+      accentColor: T.primary,
+      onDone: handleTutorialDone,
+    });
+  }, [startTutorial, tutorialSteps, handleTutorialDone]);
+
+  // Show tutorial on first visit. Delayed so the list paints before measuring.
+  useFocusEffect(useCallback(() => {
+    let timer;
+    (async () => {
+      const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
+      if (!seen) timer = setTimeout(launchTutorial, 450);
+    })();
+    return () => clearTimeout(timer);
+  }, [launchTutorial]));
 
   const handleLogout = () =>
     Alert.alert('End Shift', 'Log out of enforcer session?', [
@@ -87,30 +123,6 @@ export default function DispatchScreen({ navigation }) {
     ]);
 
   const criticalCount = orders.filter(o => o.violations.some(v => v.severity === 'critical')).length;
-
-  // Tutorial step definitions
-  const tutorialSteps = [
-    {
-      targetRef: topBarRef,
-      title: 'Dispatch Dashboard',
-      desc: 'Your command center showing all active violations on the corridor. Critical violations are flagged with a red badge.',
-    },
-    {
-      targetRef: toggleRef,
-      title: 'List & Map Views',
-      desc: 'Switch between List view (violations sorted by severity) and Map view (violations pinned on the live route map).',
-    },
-    {
-      targetRef: listRef,
-      title: 'Violation Cards',
-      desc: 'Each card shows a PUV with active violations, severity, and location. Tap any card to open the Action Screen and respond.',
-    },
-    {
-      targetRef: actionsRef,
-      title: 'Quick Actions',
-      desc: 'Replay this tutorial at any time, switch to Passenger mode to view PUVs as a commuter, or log out to end your enforcer shift.',
-    },
-  ];
 
   return (
     <View style={styles.root}>
@@ -141,7 +153,7 @@ export default function DispatchScreen({ navigation }) {
               <Text style={styles.countText}>{orders.length}</Text>
             </View>
           )}
-          <TouchableOpacity onPress={() => setShowTutorial(true)} style={styles.iconBtn}>
+          <TouchableOpacity onPress={launchTutorial} style={styles.iconBtn}>
             <Text style={styles.iconBtnText}>Tutorial</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleSwitchRole} style={styles.iconBtn}>
@@ -253,13 +265,6 @@ export default function DispatchScreen({ navigation }) {
         )}
       </View>
 
-      {/* TUTORIAL OVERLAY */}
-      <TutorialOverlay
-        visible={showTutorial}
-        steps={tutorialSteps}
-        accentColor={T.primary}
-        onDone={handleTutorialDone}
-      />
     </View>
   );
 }
