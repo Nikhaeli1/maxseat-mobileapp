@@ -8,11 +8,10 @@
  *   us the entire window, so measureInWindow coordinates line up exactly.
  *
  * HOW THE SPOTLIGHT IS DRAWN
- *   A single View whose border is thicker than the screen. A border paints
- *   outside the content box, so the border alone covers everything except the
- *   content box — which becomes the hole. Because borderRadius = HUGE + RADIUS,
- *   the border's inner edge curves with radius RADIUS, giving a perfect rounded
- *   rectangle with no seams, no corner artifacts, and no edge-case gaps.
+ *   Four plain dim rectangles around the target (above, below, left, right);
+ *   the gap between them is the hole. This used to be one giant view with a
+ *   screen-sized rounded border, but Android can't draw a shape that big: the
+ *   hole disappeared and the card could end up hidden, leaving the app dim.
  *
  * MOTION
  *   Between steps the spotlight MORPHS: x/y/w/h spring to the next element so
@@ -39,7 +38,6 @@ const WIN = Dimensions.get('window');
 const DIM        = 'rgba(10, 14, 30, 0.66)';
 const PAD        = 8;    // breathing room around the measured element
 const SPOT_R     = 18;   // spotlight corner radius
-const HUGE       = Math.max(WIN.width, WIN.height) + 200;
 const CARD_INSET = 16;   // card margin from screen edges
 const BOTTOM_SAFE = 30;  // keeps the card clear of the home indicator
 const GAP        = 14;   // gap between spotlight and card
@@ -353,25 +351,18 @@ export default function TutorialOverlay({
         }
       }}
     >
-        {/* ── DIM + SPOTLIGHT HOLE (single view, giant rounded border) ──── */}
+        {/* ── DIM + SPOTLIGHT HOLE (four rectangles around the target) ──── */}
         <Animated.View
           pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { opacity: dimFade, overflow: 'visible' }]}
+          style={[StyleSheet.absoluteFill, { opacity: dimFade }]}
         >
           {spot ? (
-            <Animated.View
-              style={{
-                position: 'absolute',
-                top:    Animated.subtract(aY, HUGE),
-                left:   Animated.subtract(aX, HUGE),
-                width:  Animated.add(aW, HUGE * 2),
-                height: Animated.add(aH, HUGE * 2),
-                borderWidth:  HUGE,
-                borderColor:  DIM,
-                borderRadius: HUGE + SPOT_R,
-                backgroundColor: 'transparent',
-              }}
-            />
+            <>
+              <Animated.View style={[styles.dim, { top: 0, left: 0, right: 0, height: aY }]} />
+              <Animated.View style={[styles.dim, { top: Animated.add(aY, aH), left: 0, right: 0, bottom: 0 }]} />
+              <Animated.View style={[styles.dim, { top: aY, height: aH, left: 0, width: aX }]} />
+              <Animated.View style={[styles.dim, { top: aY, height: aH, left: Animated.add(aX, aW), right: 0 }]} />
+            </>
           ) : (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: DIM }]} />
           )}
@@ -524,7 +515,9 @@ export default function TutorialOverlay({
 
 const styles = StyleSheet.create({
   root:     { ...StyleSheet.absoluteFillObject, zIndex: 9999, elevation: 9999 },
-  cardWrap: { position: 'absolute', zIndex: 2 },
+  dim:      { position: 'absolute', backgroundColor: DIM },
+  // elevation on Android decides what draws on top, so the card gets the highest
+  cardWrap: { position: 'absolute', zIndex: 20, elevation: 24 },
 
   arrowUp: {
     width: 0, height: 0,
