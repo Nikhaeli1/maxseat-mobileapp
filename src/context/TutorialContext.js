@@ -21,9 +21,10 @@
  *   startTutorial(steps, { accentColor, onDone });
  */
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import TutorialOverlay from '../components/TutorialOverlay';
+import { useAuth } from './AuthContext';
 
 const TutorialContext = createContext({
   startTutorial: () => {},
@@ -42,6 +43,12 @@ export function TutorialProvider({ children }) {
   }, []);
 
   const stopTutorial = useCallback(() => setTour(null), []);
+
+  // Never carry a tour across logout / role switch / onboarding: the overlay
+  // sits above the whole app, so a leftover tour would darken every screen.
+  const { user, showOnboarding } = useAuth();
+  const userKey = user ? `${user.role}:${user.username}` : '';
+  useEffect(() => { setTour(null); }, [userKey, showOnboarding]);
 
   const handleDone = useCallback(() => {
     tour?.onDone?.();
