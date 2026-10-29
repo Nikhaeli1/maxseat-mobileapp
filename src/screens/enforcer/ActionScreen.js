@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, Alert, ActivityIndicator, StatusBar,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { submitInterception } from '../../api/apiService';
 import StatusBadge from '../../components/StatusBadge';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
@@ -91,23 +91,20 @@ export default function ActionScreen({ route, navigation }) {
             <Text style={styles.sectionLabel}>📍 Live GNSS Location</Text>
             <Text style={styles.mapLocText}>{order.loc_name}</Text>
           </View>
-          <MapView
+          <LeafletMap
             style={styles.map}
-            provider={PROVIDER_DEFAULT}
-            initialRegion={{
-              latitude: order.lat, longitude: order.lng,
-              latitudeDelta: 0.01, longitudeDelta: 0.01,
-            }}
-            scrollEnabled={false}
-            zoomEnabled={false}
-          >
-            <Marker
-              coordinate={{ latitude: order.lat, longitude: order.lng }}
-              pinColor={isCritical ? COLORS.danger : COLORS.warning}
-              title={order.plate}
-              description={order.loc_name}
-            />
-          </MapView>
+            interactive={false}
+            markers={[{
+              id:     order.puv_id,
+              lat:    order.lat,
+              lng:    order.lng,
+              hasGps: order.has_gps,
+              color:  isCritical ? COLORS.danger : COLORS.warning,
+              radius: 12,
+              title:  order.plate,
+              lines:  [order.loc_name],
+            }]}
+          />
         </View>
 
         {/* ── VEHICLE INFO ─────────────────────────────────────────────── */}
