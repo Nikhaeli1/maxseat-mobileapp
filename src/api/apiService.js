@@ -2,14 +2,16 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-export const BASE_URL = 'https://web-production-ab4a.up.railway.app';
+// Server address (Vercel). To point the app somewhere else without editing code,
+// set EXPO_PUBLIC_API_URL in a .env file, e.g. EXPO_PUBLIC_API_URL=http://192.168.1.5:8000
+export const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://maxseat-final.vercel.app').replace(/\/+$/, '');
 
 const TOKEN_KEY = '@maxseat_token';
 
 // ─── AXIOS INSTANCE ───────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 20000,   // Vercel + Neon can take a few seconds to wake up after being idle
   headers: { 'Content-Type': 'application/json' },
 });
 
