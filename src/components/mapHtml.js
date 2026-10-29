@@ -1,5 +1,5 @@
 // HTML page that runs inside the WebView for <LeafletMap>.
-// Same free map as the MaxSeat website: Leaflet + CARTO tiles (falls back to OpenStreetMap).
+// Same free map as the MaxSeat website: Leaflet + OpenStreetMap tiles (with backup servers).
 // No Google Maps API key needed.
 
 const LEAFLET_VERSION = '1.9.4';
@@ -63,11 +63,15 @@ export function buildMapHtml({ baseUrl, interactive = true, showLocate = false, 
     document.head.appendChild(s);
   }
 
+  // Free map backgrounds, no API key (CARTO now watermarks its free tiles).
+  // If one server fails, the map switches to the next.
   var TILES = [
-    { url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      o: { subdomains: 'abcd', maxZoom: 20, attribution: '&copy; OpenStreetMap &copy; CARTO' } },
     { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      o: { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' } }
+      o: { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' } },
+    { url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+      o: { subdomains: 'abc', maxZoom: 19, attribution: '&copy; OpenStreetMap contributors, HOT' } },
+    { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+      o: { maxZoom: 19, attribution: 'Tiles &copy; Esri' } }
   ];
 
   function toLL(lat, lng) {

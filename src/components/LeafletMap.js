@@ -5,7 +5,7 @@ import { BASE_URL } from '../api/apiService';
 import { buildMapHtml } from './mapHtml';
 
 /**
- * Free map (Leaflet + CARTO / OpenStreetMap) shown in a WebView.
+ * Free map (Leaflet + OpenStreetMap) shown in a WebView.
  * Works in Expo Go and in the APK without a Google Maps API key.
  *
  * markers: [{ id, lat, lng, hasGps, color, title, lines: [text | {text, tone:'warn'|'bad'}], cta, radius }]
