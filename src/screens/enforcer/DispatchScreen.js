@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   ActivityIndicator, RefreshControl, StatusBar, Alert, Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchDispatchOrders } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
@@ -26,10 +26,6 @@ export default function DispatchScreen({ navigation }) {
   const [refreshing, setRefreshing]  = useState(false);
   const [view,       setView]        = useState('list');
 
-  const [region, setRegion] = useState({
-    latitude: 8.4822, longitude: 124.6472,
-    latitudeDelta: 0.08, longitudeDelta: 0.08,
-  });
 
   // Refs for coach-mark spotlight
   const topBarRef   = useRef(null);
@@ -69,11 +65,7 @@ export default function DispatchScreen({ navigation }) {
     isRefresh ? setRefreshing(true) : setLoading(true);
     try {
       const data = await fetchDispatchOrders();
-      setOrders(data.dispatch_orders || []);
-      if (data.dispatch_orders?.length > 0) {
-        const first = data.dispatch_orders[0];
-        setRegion(r => ({ ...r, latitude: first.lat, longitude: first.lng }));
-      }
+      setOrders(data.dispatch_orders || []);   // the map zooms to the vehicles by itself
     } catch (err) {
       if (err?.response?.status === 401) {
         Alert.alert('Session Expired', 'Please log in again.', [{ text: 'OK', onPress: logout }]);
@@ -87,6 +79,25 @@ export default function DispatchScreen({ navigation }) {
   }, [logout]);
 
   // Load data on focus
+  const mapMarkers = useMemo(() => orders.map(item => {
+    const isCritical = (item.violations || []).some(v => v.severity === 'critical');
+    return {
+      id:     item.puv_id,
+      lat:    item.lat,
+      lng:    item.lng,
+      hasGps: item.has_gps,
+      color:  isCritical ? COLORS.danger : COLORS.warning,
+      radius: 12,
+      title:  item.plate,
+      lines:  [
+        item.company,
+        `📍 ${item.loc_name || '—'}`,
+        ...(item.violations || []).map(v => ({ text: `⚠ ${v.label}`, tone: v.severity === 'critical' ? 'bad' : 'warn' })),
+      ],
+      cta:    'Respond →',
+    };
+  }), [orders]);
+
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const handleTutorialDone = useCallback(async () => {
@@ -231,37 +242,14 @@ export default function DispatchScreen({ navigation }) {
 
         {/* ── MAP VIEW ────────────────────────────────────────────────────── */}
         {!loading && view === 'map' && (
-          <MapView
+          <LeafletMap
             style={styles.map}
-            provider={PROVIDER_DEFAULT}
-            region={region}
-            onRegionChangeComplete={setRegion}
-          >
-            {orders.map(item => {
-              const isCritical = item.violations.some(v => v.severity === 'critical');
-              return (
-                <Marker
-                  key={item.puv_id}
-                  coordinate={{ latitude: item.lat, longitude: item.lng }}
-                  pinColor={isCritical ? COLORS.danger : COLORS.warning}
-                >
-                  <Callout onPress={() => { setView('list'); navigation.navigate('Action', { order: item }); }}>
-                    <View style={styles.callout}>
-                      <Text style={styles.calloutPlate}>{item.plate}</Text>
-                      <Text style={styles.calloutDetail}>{item.company}</Text>
-                      <Text style={styles.calloutDetail}>📍 {item.loc_name}</Text>
-                      {item.violations.map((v, i) => (
-                        <Text key={i} style={[styles.calloutViolation, isCritical && { color: COLORS.danger }]}>
-                          ⚠ {v.label}
-                        </Text>
-                      ))}
-                      <Text style={styles.calloutAction}>Tap to Respond →</Text>
-                    </View>
-                  </Callout>
-                </Marker>
-              );
-            })}
-          </MapView>
+            markers={mapMarkers}
+            onMarkerPress={(id) => {
+              const item = orders.find(o => String(o.puv_id) === String(id));
+              if (item) { setView('list'); navigation.navigate('Action', { order: item }); }
+            }}
+          />
         )}
       </View>
 

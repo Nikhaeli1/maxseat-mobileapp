@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, StatusBar, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
+import LeafletMap from '../../components/LeafletMap';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { fetchAllPuvs } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
@@ -13,10 +13,6 @@ export default function MapScreen() {
   const { logout }          = useAuth();
   const [puvs, setPuvs]     = useState([]);
   const [loading, setLoading] = useState(true);
-  const [region, setRegion]   = useState({
-    latitude: 8.4822, longitude: 124.6472,
-    latitudeDelta: 0.08, longitudeDelta: 0.08,
-  });
 
   const markerColor = (p) => p.overloaded ? COLORS.danger : p.load_pct >= 80 ? COLORS.warning : '#22c55e';
 
@@ -25,9 +21,7 @@ export default function MapScreen() {
     try {
       const data = await fetchAllPuvs();
       const list = data.puvs || [];
-      setPuvs(list);
-      if (list.length > 0)
-        setRegion(r => ({ ...r, latitude: list[0].lat || 8.4822, longitude: list[0].lng || 124.6472 }));
+      setPuvs(list);   // the map zooms to the vehicles by itself
     } catch (err) {
       if (err?.response?.status === 401)
         Alert.alert('Session Expired', 'Please log in again.', [{ text: 'OK', onPress: logout }]);
@@ -39,6 +33,22 @@ export default function MapScreen() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const overloaded = puvs.filter(p => p.overloaded).length;
+
+  const markers = useMemo(() => puvs.map(item => ({
+    id:     item.puv_id,
+    lat:    item.lat,
+    lng:    item.lng,
+    hasGps: item.has_gps,
+    color:  markerColor(item),
+    title:  item.plate,
+    lines:  [
+      item.company,
+      `📍 ${item.loc_name || '—'}`,
+      { text: `👥 ${item.passengers}/${item.capacity}`, tone: item.overloaded ? 'bad' : '' },
+      { text: `🌡 ${item.temp}°C`, tone: item.hot ? 'warn' : '' },
+    ],
+    cta:    'View details →',
+  })), [puvs]);
 
   return (
     <View style={styles.root}>
@@ -81,45 +91,15 @@ export default function MapScreen() {
         </View>
       )}
 
-      <MapView
+      <LeafletMap
         style={styles.map}
-        provider={PROVIDER_DEFAULT}
-        region={region}
-        onRegionChangeComplete={setRegion}
-        showsUserLocation
-        showsMyLocationButton
-      >
-        {puvs.map(item => (
-          <Marker
-            key={item.puv_id}
-            coordinate={{ latitude: item.lat || 8.4822, longitude: item.lng || 124.6472 }}
-            pinColor={markerColor(item)}
-            title={item.plate}
-            description={item.loc_name}
-          >
-            <Callout onPress={() => navigation.navigate('PuvDetail', { plate: item.plate })}>
-              <View style={styles.callout}>
-                <Text style={styles.calloutPlate}>{item.plate}</Text>
-                <Text style={styles.calloutCompany}>{item.company}</Text>
-                <Text style={styles.calloutLoc}>📍 {item.loc_name}</Text>
-                <View style={styles.calloutStats}>
-                  <View style={[styles.statChip, { backgroundColor: markerColor(item) + '22' }]}>
-                    <Text style={[styles.statChipText, { color: markerColor(item) }]}>
-                      👥 {item.passengers}/{item.capacity}
-                    </Text>
-                  </View>
-                  <View style={[styles.statChip, { backgroundColor: item.hot ? '#fef3c7' : '#f0fdf4' }]}>
-                    <Text style={[styles.statChipText, { color: item.hot ? COLORS.warning : '#16a34a' }]}>
-                      🌡 {item.temp}°C
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.calloutCta}>Tap to View Details →</Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
-      </MapView>
+        markers={markers}
+        showLocate
+        onMarkerPress={(id) => {
+          const item = puvs.find(p => String(p.puv_id) === String(id));
+          if (item) navigation.navigate('PuvDetail', { plate: item.plate });
+        }}
+      />
     </View>
   );
 }
