@@ -4,13 +4,13 @@
 
 const LEAFLET_VERSION = '1.9.4';
 
-export function buildMapHtml({ baseUrl, interactive = true, showLocate = false, center, zoom }) {
+export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showLocate = false, center, zoom }) {
   const assets = (file) => JSON.stringify([
     `${baseUrl}/static/vendor/leaflet/${file}`,                      // our own server first
     `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/${file}`,
     `https://cdn.jsdelivr.net/npm/leaflet@${LEAFLET_VERSION}/dist/${file}`,
   ]);
-  const opts = JSON.stringify({ interactive, showLocate, center: center || [8.4822, 124.6472], zoom: zoom || 13 });
+  const opts = JSON.stringify({ interactive, showLocate, cartoKey, center: center || [8.4822, 124.6472], zoom: zoom || 13 });
 
   return `<!DOCTYPE html>
 <html>
@@ -63,16 +63,19 @@ export function buildMapHtml({ baseUrl, interactive = true, showLocate = false, 
     document.head.appendChild(s);
   }
 
-  // Free map backgrounds, no API key (CARTO now watermarks its free tiles).
-  // If one server fails, the map switches to the next.
-  var TILES = [
+  // Map backgrounds, tried in order; if one fails, the map switches to the next.
+  // CARTO Voyager only when a key is set (without a key CARTO draws a watermark).
+  var TILES = (OPTS.cartoKey ? [
+    { url: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=' + encodeURIComponent(OPTS.cartoKey),
+      o: { maxZoom: 20, attribution: '&copy; OpenStreetMap &copy; CARTO' } }
+  ] : []).concat([
     { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       o: { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' } },
     { url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
       o: { subdomains: 'abc', maxZoom: 19, attribution: '&copy; OpenStreetMap contributors, HOT' } },
     { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
       o: { maxZoom: 19, attribution: 'Tiles &copy; Esri' } }
-  ];
+  ]);
 
   function toLL(lat, lng) {
     var a = parseFloat(lat), b = parseFloat(lng);

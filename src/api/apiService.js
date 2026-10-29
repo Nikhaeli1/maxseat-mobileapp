@@ -6,6 +6,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // set EXPO_PUBLIC_API_URL in a .env file, e.g. EXPO_PUBLIC_API_URL=http://192.168.1.5:8000
 export const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://maxseat-final.vercel.app').replace(/\/+$/, '');
 
+// CARTO map style key (optional). Put EXPO_PUBLIC_CARTO_KEY=... in a .env file.
+// Without it, maps use free OpenStreetMap tiles.
+export const CARTO_KEY = (process.env.EXPO_PUBLIC_CARTO_KEY || '').trim();
+
 const TOKEN_KEY = '@maxseat_token';
 
 // ─── AXIOS INSTANCE ───────────────────────────────────────────────────────────

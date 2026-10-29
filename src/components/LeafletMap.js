@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { BASE_URL } from '../api/apiService';
+import { BASE_URL, CARTO_KEY } from '../api/apiService';
 import { buildMapHtml } from './mapHtml';
 
 /**
- * Free map (Leaflet + OpenStreetMap) shown in a WebView.
+ * Map (Leaflet; CARTO tiles with EXPO_PUBLIC_CARTO_KEY, else OpenStreetMap) shown in a WebView.
  * Works in Expo Go and in the APK without a Google Maps API key.
  *
  * markers: [{ id, lat, lng, hasGps, color, title, lines: [text | {text, tone:'warn'|'bad'}], cta, radius }]
@@ -28,7 +28,7 @@ export default function LeafletMap({
 
   // Built once per map; marker data is pushed in afterwards so the zoom/position is kept
   const html = useMemo(
-    () => buildMapHtml({ baseUrl: BASE_URL, interactive, showLocate, center, zoom }),
+    () => buildMapHtml({ baseUrl: BASE_URL, cartoKey: CARTO_KEY, interactive, showLocate, center, zoom }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [interactive, showLocate],
   );
