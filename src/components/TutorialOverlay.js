@@ -19,8 +19,10 @@
  *   the hole glides and resizes across the screen. The card cross-fades around
  *   the morph, and a soft halo breathes while the user reads.
  *
- *   Spotlight geometry animates layout props, so it is JS-driven. The card uses
- *   the native driver. They live on separate views — drivers are never mixed.
+ *   Everything is JS-driven. The card used to use the native driver, but on the
+ *   new Android architecture a re-render (e.g. the card measuring itself) could
+ *   reset a native-driven opacity back to 0: the card vanished while the dim
+ *   stayed, so the tour could never be closed and the whole app stayed dark.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -78,7 +80,7 @@ export default function TutorialOverlay({
   const rimPop   = useRef(new Animated.Value(1)).current;
   const halo     = useRef(new Animated.Value(0)).current;
 
-  // Card — native driver
+  // Card — JS driver (see MOTION note above)
   const cardFade = useRef(new Animated.Value(0)).current;
   const cardY    = useRef(new Animated.Value(14)).current;
 
@@ -137,18 +139,18 @@ export default function TutorialOverlay({
     Animated.parallel([
       Animated.timing(cardFade, {
         toValue: 1, duration: 260,
-        easing: Easing.out(Easing.ease), useNativeDriver: true,
+        easing: Easing.out(Easing.ease), useNativeDriver: false,
       }),
       Animated.spring(cardY, {
-        toValue: 0, tension: 58, friction: 9, useNativeDriver: true,
+        toValue: 0, tension: 58, friction: 9, useNativeDriver: false,
       }),
     ]).start();
   }, [cardFade, cardY]);
 
   const cardOut = useCallback((cb) => {
     Animated.parallel([
-      Animated.timing(cardFade, { toValue: 0, duration: 150, useNativeDriver: true }),
-      Animated.timing(cardY,    { toValue: -8, duration: 150, useNativeDriver: true }),
+      Animated.timing(cardFade, { toValue: 0, duration: 150, useNativeDriver: false }),
+      Animated.timing(cardY,    { toValue: -8, duration: 150, useNativeDriver: false }),
     ]).start(() => cb?.());
   }, [cardFade, cardY]);
 
@@ -255,14 +257,38 @@ export default function TutorialOverlay({
   }, [idx, visible, measureStep, showFirst, morphTo]);
 
   // ── Navigation ────────────────────────────────────────────────────────────
+  // Always closes the tour, even if an animation callback never arrives
+  const finishing = useRef(false);
   const finish = useCallback(() => {
+    if (finishing.current) return;
+    finishing.current = true;
     stopHalo();
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      finishing.current = false;
+      firstShow.current = true;
+      setIdx(0);
+      onDone?.();
+    };
     Animated.parallel([
       Animated.timing(dimFade,  { toValue: 0, duration: 260, useNativeDriver: false }),
       Animated.timing(rimFade,  { toValue: 0, duration: 200, useNativeDriver: false }),
-      Animated.timing(cardFade, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => { firstShow.current = true; setIdx(0); onDone?.(); });
+      Animated.timing(cardFade, { toValue: 0, duration: 200, useNativeDriver: false }),
+    ]).start(close);
+    setTimeout(close, 600);   // safety net
   }, [dimFade, rimFade, cardFade, onDone, stopHalo]);
+
+  // Safety net: if the card somehow isn't showing a few seconds after the dim
+  // appeared, close the tour rather than leave the app darkened.
+  useEffect(() => {
+    if (!visible) return undefined;
+    const t = setTimeout(() => {
+      if (cardFade.__getValue() < 0.5) finish();
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [visible, idx, cardFade, finish]);
 
   const handleNext = () => (isLast ? finish() : setIdx(i => i + 1));
   const handleBack = () => idx > 0 && setIdx(i => i - 1);

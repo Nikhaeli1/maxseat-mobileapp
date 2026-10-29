@@ -20,7 +20,7 @@ const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_enforcer';
 
 export default function DispatchScreen({ navigation }) {
   const { user, logout, switchRole } = useAuth();
-  const { startTutorial } = useTutorial();
+  const { startTutorial, stopTutorial } = useTutorial();
   const [orders,     setOrders]      = useState([]);
   const [loading,    setLoading]     = useState(true);
   const [refreshing, setRefreshing]  = useState(false);
@@ -114,12 +114,14 @@ export default function DispatchScreen({ navigation }) {
   // Show tutorial on first visit. Delayed so the list paints before measuring.
   useFocusEffect(useCallback(() => {
     let timer;
+    let cancelled = false;
     (async () => {
       const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
-      if (!seen) timer = setTimeout(launchTutorial, 450);
+      if (!seen && !cancelled) timer = setTimeout(launchTutorial, 450);
     })();
-    return () => clearTimeout(timer);
-  }, [launchTutorial]));
+    // Leaving this screen: cancel a pending start and close any tour still open
+    return () => { cancelled = true; clearTimeout(timer); stopTutorial(); };
+  }, [launchTutorial, stopTutorial]));
 
   const handleLogout = () =>
     Alert.alert('End Shift', 'Log out of enforcer session?', [

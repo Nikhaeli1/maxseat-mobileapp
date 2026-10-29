@@ -19,7 +19,7 @@ const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_passenger';
 
 export default function HomeScreen({ navigation }) {
   const { user, dashTutorialRequest, clearDashTutorialRequest } = useAuth();
-  const { startTutorial } = useTutorial();
+  const { startTutorial, stopTutorial } = useTutorial();
   const [puvs,       setPuvs]       = useState([]);
   const [filtered,   setFiltered]   = useState([]);
   const [query,      setQuery]      = useState('');
@@ -92,16 +92,18 @@ export default function HomeScreen({ navigation }) {
   // Guarded by a ref so re-focusing the tab doesn't re-check or re-trigger.
   const firstVisitChecked = useRef(false);
   useFocusEffect(useCallback(() => {
-    if (firstVisitChecked.current) return;
-    firstVisitChecked.current = true;
-
     let timer;
-    (async () => {
-      const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
-      if (!seen) timer = setTimeout(launchTutorial, 500);
-    })();
-    return () => clearTimeout(timer);
-  }, [launchTutorial]));
+    let cancelled = false;
+    if (!firstVisitChecked.current) {
+      firstVisitChecked.current = true;
+      (async () => {
+        const seen = await AsyncStorage.getItem(DASH_TUTORIAL_KEY);
+        if (!seen && !cancelled) timer = setTimeout(launchTutorial, 500);
+      })();
+    }
+    // Leaving this screen: cancel a pending start and close any tour still open
+    return () => { cancelled = true; clearTimeout(timer); stopTutorial(); };
+  }, [launchTutorial, stopTutorial]));
 
   // ── Replay requested from Profile ────────────────────────────────────────
   // The flag is cleared INSIDE the timeout, not before it. Clearing it early
