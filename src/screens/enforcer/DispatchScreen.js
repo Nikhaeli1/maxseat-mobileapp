@@ -16,7 +16,7 @@ import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.enforcer;
 const { height: H } = Dimensions.get('window');
-const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_enforcer';
+const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_enforcer_v2';
 
 export default function DispatchScreen({ navigation }) {
   const { user, logout, switchRole } = useAuth();

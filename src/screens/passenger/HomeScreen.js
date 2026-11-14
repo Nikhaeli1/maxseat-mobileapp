@@ -15,7 +15,7 @@ import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.passenger;
 const { width: W, height: H } = Dimensions.get('window');
-const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_passenger';
+const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_passenger_v2';
 
 export default function HomeScreen({ navigation }) {
   const { user, dashTutorialRequest, clearDashTutorialRequest } = useAuth();
