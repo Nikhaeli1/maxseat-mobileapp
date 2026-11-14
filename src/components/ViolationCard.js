@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   cardCritical: {
     borderLeftWidth:  4,
     borderLeftColor:  COLORS.danger,
-    borderColor:      'rgba(239,68,68,0.2)',
+    borderColor:      'rgba(198,242,78,0.2)',
   },
 
   header: {
@@ -94,15 +94,15 @@ const styles = StyleSheet.create({
     marginBottom:   12,
   },
   plateWrap: { flex: 1, marginRight: 12 },
-  plate:     { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.5 },
-  company:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', marginTop: 2 },
+  plate:     { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.5 },
+  company:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
   badgeCol:  { alignItems: 'flex-end', gap: 4 },
 
   divider: { height: 1, backgroundColor: COLORS.border, marginBottom: 12 },
 
   violationRow:    { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
   violationDot:    { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
-  violationDetail: { flex: 1, fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', lineHeight: 18 },
+  violationDetail: { flex: 1, fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', lineHeight: 18 },
 
   metaRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
   metaChip: {
@@ -117,13 +117,13 @@ const styles = StyleSheet.create({
     borderColor:     COLORS.border,
   },
   metaIcon: { fontSize: 14 },
-  metaText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', flex: 1 },
+  metaText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', flex: 1 },
 
   respondRow:          { marginTop: 12 },
   respondBtn:          { borderRadius: RADIUS.badge, paddingVertical: 10, alignItems: 'center' },
-  respondBtnCritical:  { backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' },
+  respondBtnCritical:  { backgroundColor: 'rgba(198,242,78,0.1)', borderWidth: 1, borderColor: 'rgba(198,242,78,0.3)' },
   respondBtnNormal:    { backgroundColor: COLORS.pageBg, borderWidth: 1, borderColor: COLORS.border },
-  respondText:         { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  respondText:         { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   respondTextCritical: { color: COLORS.danger },
   respondTextNormal:   { color: COLORS.textSecondary },
 });

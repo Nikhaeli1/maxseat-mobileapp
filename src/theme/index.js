@@ -1,86 +1,133 @@
-// ─── MaxSeat Design System — matched to web backend (layout.html) ────────────
+// ─── MaxSeat Design System: Forest & Lime (matches the web app) ─────────────
+// Three colors only: forest green, white, lime. Everything else is a shade of these.
+// Dark mode follows the phone's own setting. It is read once when the app starts,
+// before any screen builds its styles, so every StyleSheet picks up the right colors.
+import { Appearance } from 'react-native';
 
-export const COLORS = {
-  // Primary (--primary in web)
-  primary:       '#2563eb',
-  primaryDark:   '#1d4ed8',
-  primaryGlow:   'rgba(37,99,235,0.12)',
+export const IS_DARK = Appearance.getColorScheme() === 'dark';
 
-  // Dark surfaces — sidebar/header bg (#0f172a in web)
-  dark:          '#0f172a',
-  darkMid:       '#1e293b',
-  darkBorder:    '#334155',
+const LIGHT = {
+  primary:       '#2F6F5A',
+  primaryDark:   '#245847',
+  primaryGlow:   'rgba(47,111,90,0.12)',
 
-  // Page / card backgrounds
-  pageBg:        '#f1f5f9',   // --bg in web
-  hoverBg:       '#f8fafc',   // --hover-bg in web
-  cardBg:        '#ffffff',
-  inputBg:       '#f8fafc',
+  // Header / strong surfaces
+  dark:          '#2F6F5A',
+  darkMid:       '#245847',
+  darkBorder:    '#3A5248',
 
-  // Text
-  textPrimary:   '#0f172a',
-  textSecondary: '#64748b',
-  textMuted:     '#94a3b8',
-  textOnDark:    '#f1f5f9',
+  pageBg:        '#EEF5F1',
+  hoverBg:       '#F5F9F7',
+  cardBg:        '#FFFFFF',
+  inputBg:       '#F5F9F7',
 
-  // Borders
-  border:        '#e2e8f0',
-  borderLight:   '#f1f5f9',
+  textPrimary:   '#14211B',
+  textSecondary: '#5E6F67',
+  textMuted:     '#8C9A93',
+  textOnDark:    '#FFFFFF',
 
-  // Semantic — exact web values
-  danger:        '#ef4444',
-  dangerDark:    '#dc2626',
-  dangerBg:      'rgba(239,68,68,0.1)',
-  dangerBorder:  'rgba(239,68,68,0.2)',
+  border:        '#DCE8E1',
+  borderLight:   '#EEF5F1',
 
-  success:       '#10b981',   // --success in web
-  successBg:     'rgba(16,185,129,0.1)',
-  successBorder: 'rgba(16,185,129,0.2)',
+  // Lime = "look here". Fill with dark text on top.
+  alert:         '#C6F24E',
+  onAlert:       '#14211B',
 
-  warning:       '#f59e0b',
-  warningBg:     'rgba(245,158,11,0.1)',
-  warningBorder: 'rgba(245,158,11,0.2)',
+  // Urgent text (overloaded, overheating, errors). Readable on the page background.
+  danger:        '#4D6B00',
+  dangerDark:    '#3D5500',
+  dangerBg:      'rgba(198,242,78,0.22)',
+  dangerBorder:  'rgba(198,242,78,0.6)',
+
+  // Calm "all good"
+  success:       '#2F6F5A',
+  successBg:     'rgba(47,111,90,0.10)',
+  successBorder: 'rgba(47,111,90,0.2)',
+
+  // Nearly full
+  warning:       '#6E8F12',
+  warningBg:     'rgba(198,242,78,0.16)',
+  warningBorder: 'rgba(198,242,78,0.45)',
+
+  statusBar:     'dark-content',
 };
 
-// Both roles use blue as UI primary (matching web sidebar nav)
-// Red is used only as violation/danger accent in enforcer mode
+const DARK = {
+  primary:       '#3E8A70',
+  primaryDark:   '#2F6F5A',
+  primaryGlow:   'rgba(198,242,78,0.12)',
+
+  dark:          '#202522',
+  darkMid:       '#262B28',
+  darkBorder:    '#343A36',
+
+  pageBg:        '#1B1F1D',
+  hoverBg:       '#2E3430',
+  cardBg:        '#262B28',
+  inputBg:       '#2E3430',
+
+  textPrimary:   '#FFFFFF',
+  textSecondary: '#9BA8A1',
+  textMuted:     '#7D8A83',
+  textOnDark:    '#FFFFFF',
+
+  border:        '#343A36',
+  borderLight:   '#2E3430',
+
+  alert:         '#C6F24E',
+  onAlert:       '#14211B',
+
+  danger:        '#C6F24E',
+  dangerDark:    '#B5E23A',
+  dangerBg:      'rgba(198,242,78,0.14)',
+  dangerBorder:  'rgba(198,242,78,0.35)',
+
+  success:       '#DCE8E1',
+  successBg:     'rgba(255,255,255,0.08)',
+  successBorder: 'rgba(255,255,255,0.16)',
+
+  warning:       '#D4F570',
+  warningBg:     'rgba(198,242,78,0.10)',
+  warningBorder: 'rgba(198,242,78,0.3)',
+
+  statusBar:     'light-content',
+};
+
+export const COLORS = { ...(IS_DARK ? DARK : LIGHT) };
+
+// Both roles share the forest green UI color. Lime marks violations.
+const roleBase = {
+  primary:      COLORS.primary,
+  primaryDark:  COLORS.primaryDark,
+  primaryLight: IS_DARK ? 'rgba(198,242,78,0.12)' : 'rgba(47,111,90,0.10)',
+  primaryMid:   IS_DARK ? '#4A6258' : '#C3D6CC',
+  primaryGlow:  COLORS.primaryGlow,
+  badgeColor:   COLORS.primary,
+  gradFrom:     IS_DARK ? '#1B1F1D' : '#EEF5F1',
+  gradTo:       IS_DARK ? '#262B28' : '#D2E2D9',
+};
+
 export const ROLE = {
   passenger: {
-    primary:      '#2563eb',
-    primaryDark:  '#1d4ed8',
-    primaryLight: 'rgba(37,99,235,0.1)',
-    primaryMid:   '#bfdbfe',
-    primaryGlow:  'rgba(37,99,235,0.12)',
-    icon:         '🚌',
-    label:        'Passenger',
-    badgeColor:   '#2563eb',
-    // login gradient background
-    gradFrom:     '#eff6ff',
-    gradTo:       '#dbeafe',
+    ...roleBase,
+    icon:  '🚌',
+    label: 'Passenger',
   },
   enforcer: {
-    primary:      '#2563eb',
-    primaryDark:  '#1d4ed8',
-    primaryLight: 'rgba(37,99,235,0.1)',
-    primaryMid:   '#bfdbfe',
-    primaryGlow:  'rgba(37,99,235,0.12)',
-    // violation/danger accent
-    danger:       '#ef4444',
-    dangerBg:     'rgba(239,68,68,0.08)',
-    dangerBorder: 'rgba(239,68,68,0.2)',
-    icon:         '🛡',
-    label:        'Enforcer',
-    badgeColor:   '#ef4444',
-    // login gradient background
-    gradFrom:     '#fff1f2',
-    gradTo:       '#fecaca',
+    ...roleBase,
+    danger:       COLORS.danger,
+    dangerBg:     COLORS.dangerBg,
+    dangerBorder: COLORS.dangerBorder,
+    icon:  '🛡',
+    label: 'Enforcer',
+    badgeColor: COLORS.danger,
   },
 };
 
 export const SHADOW = {
-  sm:     { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3  },
-  md:     { elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6  },
-  button: { elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 8  },
+  sm:     { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: IS_DARK ? 0.3 : 0.06, shadowRadius: 3  },
+  md:     { elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: IS_DARK ? 0.35 : 0.08, shadowRadius: 6  },
+  button: { elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: IS_DARK ? 0.4 : 0.12, shadowRadius: 8  },
 };
 
 export const RADIUS = {
@@ -92,11 +139,11 @@ export const RADIUS = {
   full:  999,
 };
 
-// ── Typography — Plus Jakarta Sans (matches web backend font) ─────────────────
+// ── Typography — Outfit (matches web backend font) ─────────────────────────
 export const FONTS = {
-  regular:   'PlusJakartaSans_Regular',
-  semiBold:  'PlusJakartaSans_SemiBold',
-  extraBold: 'PlusJakartaSans_ExtraBold',
+  regular:   'Outfit_Regular',
+  semiBold:  'Outfit_SemiBold',
+  extraBold: 'Outfit_ExtraBold',
 };
 
 // ── Backward-compat aliases ───────────────────────────────────────────────────

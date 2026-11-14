@@ -81,7 +81,7 @@ function Value({ children, style }) {
 
 function P0_Welcome() {
   return (
-    <Illustration bgColor="#eff6ff">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard style={il.centeredCard}>
         <View style={il.brandRow}>
           <View style={[il.brandDot, { backgroundColor: COLORS.primary }]} />
@@ -114,7 +114,7 @@ function P1_HomeScreen() {
   }, []);
 
   return (
-    <Illustration bgColor="#f0fdf4">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         {/* Search bar mock */}
         <Row style={{ marginBottom: 12 }}>
@@ -127,12 +127,12 @@ function P1_HomeScreen() {
         <View style={mu.puvCard}>
           <Row style={{ marginBottom: 6 }}>
             <Value style={{ flex: 1 }}>CDO – 001 – AB</Value>
-            <Pill label="AVAILABLE" color="#16a34a" bg="#dcfce7" />
+            <Pill label="AVAILABLE" color={COLORS.success} bg={COLORS.successBg} />
           </Row>
-          <CapBar pct={58} color="#16a34a" />
+          <CapBar pct={58} color={COLORS.success} />
           <Row style={{ marginTop: 5 }}>
             <Label>12 / 20 passengers</Label>
-            <Value style={{ color: '#16a34a' }}>58%</Value>
+            <Value style={{ color: COLORS.success }}>58%</Value>
           </Row>
         </View>
 
@@ -168,7 +168,7 @@ function P2_Capacity() {
   const SEATS = Array.from({ length: 20 }, (_, i) => i < 14);
 
   return (
-    <Illustration bgColor="#fefce8">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Label style={{ marginBottom: 8 }}>CDO – 045 · Capacity</Label>
         {/* Animated bar */}
@@ -198,11 +198,11 @@ function P2_Capacity() {
 
 function P3_PuvDetail() {
   return (
-    <Illustration bgColor="#f0f9ff">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Row style={{ marginBottom: 10 }}>
           <Value style={{ fontSize: 15, flex: 1 }}>CDO – 001 – AB</Value>
-          <Pill label="AVAILABLE" color="#16a34a" bg="#dcfce7" />
+          <Pill label="AVAILABLE" color={COLORS.success} bg={COLORS.successBg} />
         </Row>
 
         {[
@@ -235,14 +235,14 @@ function P4_Report() {
   }, []);
 
   return (
-    <Illustration bgColor="#fdf4ff">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Label style={{ marginBottom: 10 }}>Report a Violation</Label>
 
         {['Overloading', 'Route Deviation', 'Driver Misconduct', 'Other'].map((type, i) => (
           <View key={type} style={[mu.checkRow, i === 0 && { borderColor: COLORS.primary, backgroundColor: COLORS.primaryGlow }]}>
             <View style={[mu.checkBox, i === 0 && { backgroundColor: COLORS.primary }]}>
-              {i === 0 && <Text style={{ color: '#fff', fontSize: 8, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' }}>✓</Text>}
+              {i === 0 && <Text style={{ color: '#fff', fontSize: 8, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' }}>✓</Text>}
             </View>
             <Label style={i === 0 ? { color: COLORS.primary } : {}}>{type}</Label>
           </View>
@@ -260,7 +260,7 @@ function P4_Report() {
 
 function P5_Profile() {
   return (
-    <Illustration bgColor="#f1f5f9">
+    <Illustration bgColor={COLORS.pageBg}>
       <MiniCard>
         {/* Avatar row */}
         <Row style={{ gap: 10, marginBottom: 14 }}>
@@ -302,7 +302,7 @@ function E0_Welcome() {
   }, []);
 
   return (
-    <Illustration bgColor="#fff1f2">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard style={il.centeredCard}>
         <View style={il.brandRow}>
           <View style={[il.brandDot, { backgroundColor: COLORS.danger }]} />
@@ -330,7 +330,7 @@ function E0_Welcome() {
 
 function E1_DispatchList() {
   return (
-    <Illustration bgColor="#fff7ed">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Label style={{ marginBottom: 10 }}>2 Active Violations · Bugo–Igpit</Label>
 
@@ -350,7 +350,7 @@ function E1_DispatchList() {
         <View style={[mu.puvCard, { borderLeftWidth: 3, borderLeftColor: COLORS.warning }]}>
           <Row style={{ marginBottom: 4 }}>
             <Value style={{ flex: 1 }}>CDO – 045</Value>
-            <View style={[mu.pill, { backgroundColor: '#fef3c7', borderColor: COLORS.warning + '60' }]}>
+            <View style={[mu.pill, { backgroundColor: COLORS.warningBg, borderColor: COLORS.warning + '60' }]}>
               <Text style={[mu.pillText, { color: COLORS.warning }]}>WARNING</Text>
             </View>
           </Row>
@@ -374,7 +374,7 @@ function E2_ActionScreen() {
   }, []);
 
   return (
-    <Illustration bgColor="#f0fdf4">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Row style={{ marginBottom: 10 }}>
           <Value>CDO – 023 – AB</Value>
@@ -423,7 +423,7 @@ function E3_MapView() {
   const DOT_POS = [5, 24, 47, 69, 88];
 
   return (
-    <Illustration bgColor="#eff6ff">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Row style={{ marginBottom: 6 }}>
           <Value>Live Map · Bugo–Igpit</Value>
@@ -486,7 +486,7 @@ function E3_MapView() {
 
 function E4_LogOut() {
   return (
-    <Illustration bgColor="#f8fafc">
+    <Illustration bgColor={COLORS.hoverBg}>
       <MiniCard>
         <Label style={{ marginBottom: 12 }}>Enforcer Best Practices</Label>
 
@@ -577,7 +577,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.hoverBg} />
 
       {/* Skip */}
       {!isLast && (
@@ -645,15 +645,15 @@ const il = StyleSheet.create({
 
   brandRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   brandDot:    { width: 12, height: 12, borderRadius: 6 },
-  brandName:   { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  brandTagline:{ fontSize: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textSecondary, marginBottom: 16 },
+  brandName:   { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  brandTagline:{ fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary, marginBottom: 16 },
 
   statChips:  { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
   chip:       { borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1 },
-  chipText:   { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700' },
+  chipText:   { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
 
   critBadge:     { backgroundColor: COLORS.dangerBg, borderRadius: RADIUS.badge, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16, borderWidth: 1, borderColor: COLORS.dangerBorder },
-  critBadgeText: { fontSize: 11, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 1 },
+  critBadgeText: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 1 },
 
   seatGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center' },
   seat:     { width: 16, height: 16, borderRadius: 3 },
@@ -661,13 +661,13 @@ const il = StyleSheet.create({
   seatEmpty:  { backgroundColor: COLORS.border },
 
   avatar:     { width: 36, height: 36, borderRadius: 10, backgroundColor: COLORS.primaryGlow, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.primary + '55' },
-  avatarText: { fontSize: 16, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  avatarText: { fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
 
   actionBtn:    { borderRadius: RADIUS.sm, height: 34, justifyContent: 'center', alignItems: 'center' },
-  actionBtnText:{ color: '#fff', fontSize: 12, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  actionBtnText:{ color: '#fff', fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   loggedBadge: { backgroundColor: COLORS.success, borderRadius: RADIUS.badge, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: COLORS.successBorder },
-  loggedText:  { color: '#fff', fontSize: 12, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 1.5 },
+  loggedText:  { color: '#fff', fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 1.5 },
 
   routeWrap:   { height: 24, position: 'relative', justifyContent: 'center', marginHorizontal: 8 },
   routeLine:   { height: 3, backgroundColor: COLORS.border, borderRadius: 2, position: 'absolute', left: 0, right: 0 },
@@ -677,14 +677,14 @@ const il = StyleSheet.create({
 });
 
 const mu = StyleSheet.create({
-  card:    { backgroundColor: '#fff', borderRadius: RADIUS.lg, padding: 16, width: W - 48, ...SHADOW.md },
+  card:    { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 16, width: W - 48, ...SHADOW.md },
   row:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  label:   { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
-  value:   { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  label:   { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
+  value:   { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
 
   pill:     { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: RADIUS.badge, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1 },
   pillDot:  { width: 5, height: 5, borderRadius: 2.5 },
-  pillText: { fontSize: 9, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
+  pillText: { fontSize: 9, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
 
   barBg:   { height: 7, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden', marginVertical: 5 },
   barFill: { height: 7, borderRadius: 4 },
@@ -701,19 +701,19 @@ const mu = StyleSheet.create({
 // ─── MAIN SCREEN STYLES ───────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f8fafc' },
+  root: { flex: 1, backgroundColor: COLORS.hoverBg },
 
   skipBtn:  { position: 'absolute', top: 52, right: 24, zIndex: 10, paddingVertical: 8, paddingHorizontal: 4 },
-  skipText: { fontSize: 13, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textMuted },
+  skipText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted },
 
   stepRow: { paddingTop: 52, paddingHorizontal: 24, marginBottom: 8 },
-  stepText:{ fontSize: 11, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
+  stepText:{ fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
 
   illuArea: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
 
   textArea: { paddingHorizontal: 28, paddingBottom: 8, paddingTop: 20 },
-  title:    { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 8, lineHeight: 29 },
-  sub:      { fontSize: 14, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 21 },
+  title:    { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 8, lineHeight: 29 },
+  sub:      { fontSize: 14, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 21 },
 
   footer:  { paddingHorizontal: 28, paddingBottom: 44, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dotsRow: { flexDirection: 'row', gap: 6, alignItems: 'center' },
@@ -721,5 +721,5 @@ const styles = StyleSheet.create({
   dotActive: { height: 7, borderRadius: 3.5 },
 
   nextBtn:  { borderRadius: RADIUS.md, paddingHorizontal: 24, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button, shadowColor: '#000' },
-  nextText: { color: '#fff', fontSize: 14, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  nextText: { color: '#fff', fontSize: 14, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 });

@@ -96,8 +96,8 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
   function style(m) {
     var r = m.radius || 11;
     return tracked(m)
-      ? { radius: r, fillColor: m.color || '#2563eb', color: '#fff', weight: 3, fillOpacity: 1, opacity: 1, dashArray: null }
-      : { radius: r - 2, fillColor: '#94a3b8', color: '#475569', weight: 2, fillOpacity: 0.55, opacity: 0.9, dashArray: '3 3' };
+      ? { radius: r, fillColor: m.color || '#2F6F5A', color: '#fff', weight: 3, fillOpacity: 1, opacity: 1, dashArray: null }
+      : { radius: r - 2, fillColor: '#8C9A93', color: '#5E6F67', weight: 2, fillOpacity: 0.55, opacity: 0.9, dashArray: '3 3' };
   }
   function popup(m) {
     var h = '<div class="ms-pop"><div class="ms-title">' + esc(m.title) + '</div>';
@@ -175,7 +175,7 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
         navigator.geolocation.getCurrentPosition(function (p) {
           var ll = [p.coords.latitude, p.coords.longitude];
           if (me) me.setLatLng(ll);
-          else me = L.circleMarker(ll, { radius: 8, fillColor: '#3b82f6', color: '#fff', weight: 3, fillOpacity: 1 }).addTo(map);
+          else me = L.circleMarker(ll, { radius: 8, fillColor: '#2F6F5A', color: '#fff', weight: 3, fillOpacity: 1 }).addTo(map);
           map.setView(ll, 16);
         }, function () { post({ type: 'locate-failed' }); }, { enableHighAccuracy: true, timeout: 10000 });
       });

@@ -70,7 +70,7 @@ export default function RegisterScreen({ navigation }) {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.pageBg} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.pageBg} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
 
   // Logo
   logoSection: { alignItems: 'center', marginBottom: 24 },
-  tagline:     { fontSize: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textMuted, marginTop: 8, letterSpacing: 0.4 },
+  tagline:     { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted, marginTop: 8, letterSpacing: 0.4 },
 
   // Card — matches web glass-card
   card: {
@@ -181,15 +181,15 @@ const styles = StyleSheet.create({
   // Passenger badge
   badge:     { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 14 },
   badgeDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
-  badgeText: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.8 },
+  badgeText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.8 },
 
-  cardTitle: { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 4 },
-  cardSub:   { fontSize: 13, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 19, marginBottom: 22 },
+  cardTitle: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 4 },
+  cardSub:   { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 19, marginBottom: 22 },
 
   // Fields — matches web input style
   fieldGroup:  { marginBottom: 16 },
   fieldLabel:  {
-    fontSize: 10, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700',
+    fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700',
     textTransform: 'uppercase', letterSpacing: 0.9,
     color: COLORS.textSecondary, marginBottom: 7,
   },
@@ -198,9 +198,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md,
     backgroundColor: COLORS.inputBg, paddingHorizontal: 14, height: 52,
   },
-  input:    { flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', color: COLORS.textPrimary },
+  input:    { flex: 1, fontSize: 14, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textPrimary },
   peekBtn:  { paddingHorizontal: 6, paddingVertical: 4 },
-  peekText: { fontSize: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
+  peekText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
 
   // Error
   errorBox:  {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: COLORS.dangerBorder,
     padding: 12, marginBottom: 14,
   },
-  errorText: { fontSize: 13, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.danger, lineHeight: 18 },
+  errorText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.danger, lineHeight: 18 },
 
   // Submit — matches web button: dark → primary on hover
   submitBtn: {
@@ -222,12 +222,12 @@ const styles = StyleSheet.create({
     ...SHADOW.button,
     shadowColor:     COLORS.dark,
   },
-  submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
+  submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
 
   // Back to login
   loginRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  loginText: { fontSize: 13, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', color: COLORS.textSecondary },
-  loginLink: { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  loginText: { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
+  loginLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
 
-  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', marginTop: 8 },
+  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 8 },
 });

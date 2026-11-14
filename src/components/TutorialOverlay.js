@@ -327,7 +327,7 @@ export default function TutorialOverlay({
   );
 
   // ── Palette ───────────────────────────────────────────────────────────────
-  const cardBg  = dark ? '#101A34' : '#FFFFFF';
+  const cardBg  = dark ? '#202522' : COLORS.cardBg;
   const titleC  = dark ? '#FFFFFF' : COLORS.textPrimary;
   const descC   = dark ? 'rgba(255,255,255,0.70)' : COLORS.textSecondary;
   const mutedC  = dark ? 'rgba(255,255,255,0.50)' : COLORS.textMuted;
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 15.5,
-    fontFamily: 'PlusJakartaSans_ExtraBold',
+    fontFamily: 'Outfit_ExtraBold',
     fontWeight: '800',
     marginBottom: 5,
     lineHeight: 21,
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
   },
   desc: {
     fontSize: 12.5,
-    fontFamily: 'PlusJakartaSans_Regular',
+    fontFamily: 'Outfit_Regular',
     fontWeight: '500',
     lineHeight: 18.5,
   },
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   backBtn: { paddingHorizontal: 10 },
   backTxt: {
     fontSize: 12.5,
-    fontFamily: 'PlusJakartaSans_SemiBold',
+    fontFamily: 'Outfit_SemiBold',
     fontWeight: '600',
   },
 
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   nextTxt: {
     color: '#fff',
     fontSize: 12.5,
-    fontFamily: 'PlusJakartaSans_ExtraBold',
+    fontFamily: 'Outfit_ExtraBold',
     fontWeight: '800',
   },
 });

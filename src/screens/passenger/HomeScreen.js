@@ -128,7 +128,7 @@ export default function HomeScreen({ navigation }) {
     ));
   };
 
-  const statusColor = (p) => p.overloaded ? COLORS.danger : p.load_pct >= 80 ? COLORS.warning : '#16a34a';
+  const statusColor = (p) => p.overloaded ? COLORS.danger : p.load_pct >= 80 ? COLORS.warning : COLORS.success;
   const statusLabel = (p) => p.overloaded ? 'OVERLOADED' : p.load_pct >= 80 ? 'NEARLY FULL' : 'AVAILABLE';
 
   const renderItem = ({ item }) => {
@@ -178,7 +178,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
 
       {/* TOP BAR */}
       <View ref={topBarRef} style={styles.topBar}>
@@ -265,47 +265,47 @@ const styles = StyleSheet.create({
 
   topBar:    { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', borderBottomWidth: 1, borderBottomColor: COLORS.border, ...SHADOW.sm },
   topLeft:   {},
-  passengerPill: { backgroundColor: 'rgba(37,99,235,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(37,99,235,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
-  passengerPillText: { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
-  topTitle:  { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
-  topSub:    { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', marginTop: 3 },
+  passengerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
+  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
+  topTitle:  { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
+  topSub:    { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
   countBadge:{ borderRadius: RADIUS.sm, paddingHorizontal: 10, paddingVertical: 4 },
-  countText: { color: '#fff', fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  countText: { color: '#fff', fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   searchWrap:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, margin: 16, borderRadius: RADIUS.lg, paddingHorizontal: 14, height: 48, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   searchIcon:  { fontSize: 16, marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500' },
+  searchInput: { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   clearBtn:    { fontSize: 14, color: COLORS.textMuted, paddingLeft: 8 },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  loadingText: { marginTop: 12, color: T.primary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600' },
+  loadingText: { marginTop: 12, color: T.primary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   emptyIcon:   { fontSize: 52, marginBottom: 12 },
-  emptyTitle:  { fontSize: 20, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
+  emptyTitle:  { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
   emptySub:    { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 20 },
   refreshBtn:  { borderRadius: RADIUS.md, paddingHorizontal: 24, paddingVertical: 10 },
-  refreshBtnText: { color: '#fff', fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', fontSize: 14 },
+  refreshBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 14 },
 
   list:       { padding: 16, paddingTop: 0 },
-  listHeader: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
 
   card:           { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   cardOverloaded: { borderLeftWidth: 4, borderLeftColor: COLORS.danger, borderColor: COLORS.dangerLight },
   cardHeader:     { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  plate:          { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.5 },
-  route:          { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', marginTop: 2 },
+  plate:          { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.5 },
+  route:          { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
   statusPill:     { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1 },
   statusDot:      { width: 6, height: 6, borderRadius: 3 },
-  statusText:     { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
+  statusText:     { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
 
   barBg:    { height: 8, backgroundColor: COLORS.borderLight, borderRadius: 4, marginBottom: 6, overflow: 'hidden' },
   barFill:  { height: 8, borderRadius: 4 },
   loadRow:  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  loadLabel:{ fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600' },
-  loadPct:  { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  loadLabel:{ fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
+  loadPct:  { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   chipRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
   chip:     { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: COLORS.border },
-  chipHot:  { backgroundColor: '#fffbeb', borderColor: COLORS.warning + '55' },
-  chipText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600' },
-  viewMore: { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', textAlign: 'right' },
+  chipHot:  { backgroundColor: COLORS.warningBg, borderColor: COLORS.warning + '55' },
+  chipText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
+  viewMore: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textAlign: 'right' },
 });
