@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView, Alert, StatusBar, Animated,
+  Platform, ScrollView, Alert, StatusBar, Animated, Easing,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../theme';
 import Logo from '../components/Logo';
 
 export default function LoginScreen({ navigation }) {
-  const { login, pendingRole } = useAuth();
+  const { login, pendingRole, roleSwitch } = useAuth();
 
   const [role,     setRole]     = useState(pendingRole || 'passenger');
   const [username, setUsername] = useState('');
@@ -28,13 +28,67 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => {
     Animated.sequence([
-      Animated.timing(logoAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.timing(logoAnim, { toValue: 1, duration: 500, useNativeDriver: false }),
       Animated.parallel([
-        Animated.timing(cardAnim, { toValue: 1, duration: 420, useNativeDriver: true }),
-        Animated.spring(cardY,    { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
+        Animated.timing(cardAnim, { toValue: 1, duration: 420, useNativeDriver: false }),
+        Animated.spring(cardY,    { toValue: 0, friction: 8, tension: 60, useNativeDriver: false }),
       ]),
     ]).start();
+    // safety: never leave the form invisible
+    const t = setTimeout(() => { logoAnim.setValue(1); cardAnim.setValue(1); }, 1600);
+    return () => clearTimeout(t);
   }, []);
+
+  // ── Role switch animation ──────────────────────────────────────────────────
+  // Pill slides under the chosen role, the role badge pops and turns,
+  // and the form glides in from the side the role came from.
+  const ROLES = ['passenger', 'enforcer'];
+  const [toggleW, setToggleW] = useState(0);
+  // Arriving from an in-app role switch: start the pill on the OLD role so it
+  // visibly slides over to the new one right after the switch cover lifts.
+  const cameFromSwitch = useRef(!!roleSwitch && !!pendingRole).current;
+  const startRole = pendingRole || 'passenger';
+  const pillX   = useRef(new Animated.Value(cameFromSwitch ? 1 - ROLES.indexOf(startRole) : ROLES.indexOf(startRole))).current;
+  const badge   = useRef(new Animated.Value(1)).current;
+  const formIn  = useRef(new Animated.Value(1)).current;
+  const formDir = useRef(1);
+  const firstRole = useRef(true);
+
+  useEffect(() => {
+    const i = ROLES.indexOf(role);
+    const play = () => {
+      formDir.current = i === 1 ? 1 : -1;
+      badge.setValue(0);
+      formIn.setValue(0);
+      Animated.parallel([
+        Animated.spring(pillX,  { toValue: i, tension: 90, friction: 11, useNativeDriver: false }),
+        Animated.spring(badge,  { toValue: 1, tension: 80, friction: 6, useNativeDriver: false }),
+        Animated.timing(formIn, { toValue: 1, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+      ]).start();
+    };
+    let wait = 0;
+    if (firstRole.current) {
+      firstRole.current = false;
+      if (!cameFromSwitch) { pillX.setValue(i); return undefined; }   // normal open: no slide
+      wait = 750;   // let the switch cover lift first
+    }
+    const t1 = setTimeout(play, wait);
+    // safety: never leave the form faded or the pill off its role
+    const t2 = setTimeout(() => { badge.setValue(1); formIn.setValue(1); pillX.setValue(i); }, wait + 1000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [role]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const segW = toggleW > 0 ? (toggleW - 8 - 4) / 2 : 0;
+  const formStyle = {
+    opacity: formIn.interpolate({ inputRange: [0, 1], outputRange: [0.25, 1] }),
+    transform: [{ translateX: formIn.interpolate({ inputRange: [0, 1], outputRange: [22 * formDir.current, 0] }) }],
+  };
+  const badgeStyle = {
+    transform: [
+      { scale: badge.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] }) },
+      { rotate: badge.interpolate({ inputRange: [0, 1], outputRange: ['-90deg', '0deg'] }) },
+    ],
+  };
 
   const theme = ROLE[role];
 
@@ -82,33 +136,50 @@ export default function LoginScreen({ navigation }) {
         ]}>
 
           {/* Role toggle */}
-          <View style={styles.roleToggleWrap}>
-            {(['passenger', 'enforcer']).map((r) => {
+          <View style={styles.roleToggleWrap} onLayout={(e) => setToggleW(e.nativeEvent.layout.width)}>
+            {segW > 0 && (
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.rolePill, {
+                  width: segW,
+                  transform: [{ translateX: pillX.interpolate({ inputRange: [0, 1], outputRange: [0, segW + 4] }) }],
+                }]}
+              />
+            )}
+            {ROLES.map((r) => {
               const t      = ROLE[r];
               const active = role === r;
               return (
                 <TouchableOpacity
                   key={r}
-                  style={[
-                    styles.roleBtn,
-                    active
-                      ? { backgroundColor: COLORS.dark, borderColor: COLORS.dark }
-                      : { backgroundColor: 'transparent', borderColor: COLORS.border },
-                  ]}
+                  style={styles.roleBtn}
                   onPress={() => setRole(r)}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                 >
                   <Text style={[styles.roleBtnLabel, active && styles.roleBtnLabelActive]}>
-                    {t.label}
+                    {r === 'passenger' ? '🚌  ' : '🛡  '}{t.label}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          <Text style={styles.cardTitle}>
-            {role === 'passenger' ? 'Passenger Sign In' : 'Enforcer Sign In'}
-          </Text>
+          <Animated.View style={formStyle}>
+          <View style={styles.titleRow}>
+            <Animated.View style={[styles.roleBadge, badgeStyle]}>
+              <Text style={styles.roleBadgeIcon}>{role === 'passenger' ? '🚌' : '🛡'}</Text>
+            </Animated.View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>
+                {role === 'passenger' ? 'Passenger sign in' : 'Enforcer sign in'}
+              </Text>
+              <Text style={styles.cardSub}>
+                {role === 'passenger' ? 'See live seats before you board' : 'Dispatch and respond to violations'}
+              </Text>
+            </View>
+          </View>
 
           {/* USERNAME */}
           <View style={styles.fieldGroup}>
@@ -163,6 +234,7 @@ export default function LoginScreen({ navigation }) {
                 </Text>
             }
           </TouchableOpacity>
+          </Animated.View>
 
         </Animated.View>
 
@@ -193,12 +265,12 @@ const styles = StyleSheet.create({
 
   // GLASS CARD
   card: {
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    backgroundColor: COLORS.cardBg,
     borderRadius:    RADIUS.xl,
-    padding:         28,
+    padding:         24,
     marginBottom:    20,
     borderWidth:     1,
-    borderColor:     'rgba(255,255,255,0.8)',
+    borderColor:     COLORS.border,
     ...SHADOW.md,
   },
 
@@ -218,16 +290,23 @@ const styles = StyleSheet.create({
     flexDirection:    'row',
     alignItems:       'center',
     justifyContent:   'center',
-    paddingVertical:  9,
+    paddingVertical:  11,
     borderRadius:     RADIUS.sm - 2,
-    borderWidth:      1.5,
-    gap:              6,
   },
+  rolePill: {
+    position: 'absolute', top: 4, bottom: 4, left: 4,
+    borderRadius: RADIUS.sm - 2,
+    backgroundColor: COLORS.primary,
+    ...SHADOW.sm,
+  },
+  titleRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
+  roleBadge:     { width: 48, height: 48, borderRadius: 15, backgroundColor: '#C6F24E', alignItems: 'center', justifyContent: 'center' },
+  roleBadgeIcon: { fontSize: 22 },
   roleBtnLabel:       { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
   roleBtnLabelActive: { color: '#fff' },
 
-  cardTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
-  cardSub:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18, marginBottom: 22 },
+  cardTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 2 },
+  cardSub:   { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18 },
 
   // FIELDS
   fieldGroup: { marginBottom: 16 },
@@ -246,14 +325,14 @@ const styles = StyleSheet.create({
 
   // SUBMIT
   submitBtn: {
-    backgroundColor: COLORS.dark,
+    backgroundColor: COLORS.primary,
     borderRadius:    RADIUS.md,
     height:          54,
     justifyContent:  'center',
     alignItems:      'center',
     marginTop:       6,
     ...SHADOW.button,
-    shadowColor:     COLORS.dark,
+    shadowColor:     '#000',
   },
   submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
 

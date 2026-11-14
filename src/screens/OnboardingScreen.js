@@ -1,11 +1,13 @@
 /**
- * OnboardingScreen — animated tutorial for Passenger & Enforcer roles.
+ * OnboardingScreen — the first-time walkthrough for Passenger and Enforcer.
  *
- * Architecture:
- * - currentIdx controls which slide is shown
- * - slide transition: fade-out left → fade-in right  (opacity + translateX, native driver)
- * - per-slide illustration: scale + fade on mount (one Animated.Value per slide)
- * - no external packages — pure React Native Animated API
+ * Shown once per role right after the first sign-in, then the coach-mark tour
+ * takes over on the dashboard.
+ *
+ * Every animation here is JS-driven (useNativeDriver: false). On the new
+ * Android architecture a native-driven opacity can be reset to 0 by a
+ * re-render, which made slides go blank. Nothing important ever starts
+ * invisible: if an animation stalls, the content is still on screen.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -14,712 +16,549 @@ import {
   Animated, Dimensions, StatusBar, Easing,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { COLORS, RADIUS, SHADOW } from '../theme';
+import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK } from '../theme';
+import BusSeats from '../components/BusSeats';
+import Logo from '../components/Logo';
 
 const W = Dimensions.get('window').width;
+const LIME = '#C6F24E';
+const INK_ON_LIME = '#14211B';
 const ease = Easing.out(Easing.cubic);
 
-// ─── ILLUSTRATION WRAPPER ─────────────────────────────────────────────────────
-// Gives every slide a consistent animated entry (scale + fade) when it mounts.
+// ─── SMALL HELPERS ────────────────────────────────────────────────────────────
 
-function Illustration({ bgColor, children }) {
-  const scale = useRef(new Animated.Value(0.88)).current;
-  const fade  = useRef(new Animated.Value(0)).current;
-
+// Counts up from `from` to `to`, one step every `ms`. Drives the live cabin demos.
+function useTicker(from, to, ms = 380) {
+  const [n, setN] = useState(from);
   useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, tension: 75, friction: 9, useNativeDriver: true }),
-      Animated.timing(fade,  { toValue: 1, duration: 350, easing: ease, useNativeDriver: true }),
-    ]).start();
-  }, []);
+    setN(from);
+    const t = setInterval(() => setN((v) => (v >= to ? v : v + 1)), ms);
+    return () => clearInterval(t);
+  }, [from, to, ms]);
+  return n;
+}
 
+function useLoop(duration = 1600) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(v, { toValue: 1, duration, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      Animated.timing(v, { toValue: 0, duration, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [v, duration]);
+  return v;
+}
+
+// Card that springs in with a small scale. Never starts invisible.
+function Stage({ children, style }) {
+  const s = useRef(new Animated.Value(0.94)).current;
+  useEffect(() => {
+    Animated.spring(s, { toValue: 1, tension: 70, friction: 9, useNativeDriver: false }).start();
+  }, [s]);
   return (
-    <View style={[il.wrap, { backgroundColor: bgColor }]}>
-      <Animated.View style={{ transform: [{ scale }], opacity: fade }}>
-        {children}
+    <Animated.View style={[ui.stage, style, { transform: [{ scale: s }] }]}>
+      {children}
+    </Animated.View>
+  );
+}
+
+function Chip({ label, kind }) {
+  // kind: 'free' (outline) | 'near' (lime outline) | 'over' (solid lime)
+  const look = kind === 'over'
+    ? { backgroundColor: LIME, borderColor: LIME }
+    : kind === 'near'
+      ? { backgroundColor: 'transparent', borderColor: LIME }
+      : { backgroundColor: 'transparent', borderColor: COLORS.border };
+  return (
+    <View style={[ui.chip, look]}>
+      <Text style={[ui.chipTxt, { color: kind === 'over' ? INK_ON_LIME : COLORS.textPrimary }]}>{label}</Text>
+    </View>
+  );
+}
+
+function Feature({ icon, label }) {
+  return (
+    <View style={ui.feature}>
+      <Text style={ui.featureIcon}>{icon}</Text>
+      <Text style={ui.featureTxt}>{label}</Text>
+    </View>
+  );
+}
+
+// ─── PASSENGER SCENES ─────────────────────────────────────────────────────────
+
+function P_Welcome() {
+  return (
+    <Stage style={{ alignItems: 'center', paddingVertical: 26 }}>
+      <Logo size="full" />
+      <Text style={ui.route}>Bugo – Igpit</Text>
+      <View style={ui.featureRow}>
+        <Feature icon="🪑" label="Live seats" />
+        <Feature icon="🗺" label="Live map" />
+        <Feature icon="📣" label="Report" />
+      </View>
+    </Stage>
+  );
+}
+
+function P_FindPuv() {
+  const grow = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(grow, { toValue: 1, duration: 900, easing: ease, useNativeDriver: false }).start();
+  }, [grow]);
+  const rows = [
+    { plate: 'ABC 1234', route: 'Bugo – Igpit', load: 8,  kind: 'free', label: 'Seats free' },
+    { plate: 'DEF 5678', route: 'Bugo – Igpit', load: 17, kind: 'near', label: 'Nearly full' },
+    { plate: 'GHI 9012', route: 'Cogon – Gusa', load: 24, kind: 'over', label: 'Overloaded' },
+  ];
+  return (
+    <Stage>
+      {rows.map((r) => {
+        const pct = Math.min(100, Math.round((r.load / 20) * 100));
+        return (
+          <View key={r.plate} style={ui.puvRow}>
+            <View style={ui.rowTop}>
+              <View>
+                <Text style={ui.plate}>{r.plate}</Text>
+                <Text style={ui.muted}>{r.route}</Text>
+              </View>
+              <Chip label={r.label} kind={r.kind} />
+            </View>
+            <View style={ui.barBg}>
+              <Animated.View style={[ui.barFill, {
+                backgroundColor: r.kind === 'free' ? COLORS.primary : LIME,
+                width: grow.interpolate({ inputRange: [0, 1], outputRange: ['0%', `${pct}%`] }),
+              }]} />
+            </View>
+            <Text style={ui.small}>{r.load} / 20 riders</Text>
+          </View>
+        );
+      })}
+    </Stage>
+  );
+}
+
+function P_LiveCabin() {
+  const riders = useTicker(2, 12);
+  return (
+    <Stage style={{ alignItems: 'center', paddingVertical: 18 }}>
+      <Text style={[ui.kicker, { marginBottom: 10 }]}>LIVE CABIN · ABC 1234</Text>
+      <BusSeats passengers={riders} capacity={20} />
+    </Stage>
+  );
+}
+
+function P_LiveMap() {
+  const move = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(move, { toValue: 1, duration: 3200, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      Animated.delay(500),
+      Animated.timing(move, { toValue: 0, duration: 0, useNativeDriver: false }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [move]);
+  const trackW = W - 48 - 32 - 40;
+  return (
+    <Stage>
+      <View style={ui.rowTop}>
+        <Text style={ui.plate}>ABC 1234</Text>
+        <View style={ui.etaPill}><Text style={ui.etaTxt}>3 min</Text></View>
+      </View>
+      <Text style={[ui.muted, { marginBottom: 22 }]}>Coming your way · 350 m</Text>
+      <View style={ui.mapBox}>
+        <View style={ui.routeLine} />
+        <View style={[ui.stop, { left: 8 }]} />
+        <View style={[ui.me, { right: 8 }]} />
+        <Animated.View style={[ui.busPin, {
+          transform: [{ translateX: move.interpolate({ inputRange: [0, 1], outputRange: [0, trackW - 30] }) }],
+        }]}>
+          <Text style={ui.busPinTxt}>8/20</Text>
+        </Animated.View>
+      </View>
+      <View style={[ui.rowTop, { marginTop: 14 }]}>
+        <Text style={ui.small}>Bugo</Text>
+        <Text style={ui.small}>You</Text>
+      </View>
+    </Stage>
+  );
+}
+
+function P_Report() {
+  const pulse = useLoop(900);
+  return (
+    <Stage>
+      <Text style={[ui.kicker, { marginBottom: 10 }]}>REPORT A PROBLEM</Text>
+      {['Overloading', 'Reckless driving', 'Rude driver', 'Other'].map((t, i) => (
+        <View key={t} style={[ui.option, i === 0 && ui.optionOn]}>
+          <View style={[ui.radio, i === 0 && ui.radioOn]}>{i === 0 && <View style={ui.radioDot} />}</View>
+          <Text style={ui.optionTxt}>{t}</Text>
+        </View>
+      ))}
+      <Animated.View style={{ transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.03] }) }] }}>
+        <View style={ui.cta}><Text style={ui.ctaTxt}>Send report</Text></View>
       </Animated.View>
-    </View>
+    </Stage>
   );
 }
 
-// ─── SHARED MINI-UI PIECES ────────────────────────────────────────────────────
-
-function CapBar({ pct, color }) {
+function P_Profile() {
   return (
-    <View style={mu.barBg}>
-      <View style={[mu.barFill, { width: `${pct}%`, backgroundColor: color }]} />
-    </View>
+    <Stage>
+      <View style={[ui.rowTop, { justifyContent: 'flex-start', gap: 12, marginBottom: 14 }]}>
+        <View style={ui.avatar}><Text style={ui.avatarTxt}>B</Text></View>
+        <View>
+          <Text style={ui.plate}>Bradley</Text>
+          <Text style={ui.muted}>Passenger</Text>
+        </View>
+      </View>
+      {[
+        ['🌗', 'Dark mode follows your phone'],
+        ['🛡', 'Switch to Enforcer mode'],
+        ['▶', 'Replay this guide'],
+        ['⏻', 'Log out'],
+      ].map(([icon, label]) => (
+        <View key={label} style={ui.menuRow}>
+          <Text style={ui.menuIcon}>{icon}</Text>
+          <Text style={ui.menuTxt}>{label}</Text>
+        </View>
+      ))}
+    </Stage>
   );
 }
 
-function Pill({ label, color, bg }) {
+// ─── ENFORCER SCENES ──────────────────────────────────────────────────────────
+
+function E_Welcome() {
   return (
-    <View style={[mu.pill, { backgroundColor: bg, borderColor: color + '60' }]}>
-      <View style={[mu.pillDot, { backgroundColor: color }]} />
-      <Text style={[mu.pillText, { color }]}>{label}</Text>
-    </View>
+    <Stage style={{ alignItems: 'center', paddingVertical: 26 }}>
+      <Logo size="full" />
+      <Text style={ui.route}>Enforcer · Bugo – Igpit</Text>
+      <View style={ui.featureRow}>
+        <Feature icon="🛡" label="Dispatch" />
+        <Feature icon="🚌" label="Live cabin" />
+        <Feature icon="📝" label="Log action" />
+      </View>
+    </Stage>
   );
 }
 
-function MiniCard({ children, style }) {
-  return <View style={[mu.card, style]}>{children}</View>;
-}
-
-function Row({ children, style }) {
-  return <View style={[mu.row, style]}>{children}</View>;
-}
-
-function Label({ children, style }) {
-  return <Text style={[mu.label, style]}>{children}</Text>;
-}
-
-function Value({ children, style }) {
-  return <Text style={[mu.value, style]}>{children}</Text>;
-}
-
-// ─── PASSENGER SLIDES ─────────────────────────────────────────────────────────
-
-function P0_Welcome() {
+function E_Dispatch() {
+  const glow = useLoop(1100);
   return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard style={il.centeredCard}>
-        <View style={il.brandRow}>
-          <View style={[il.brandDot, { backgroundColor: COLORS.primary }]} />
-          <Text style={il.brandName}>MaxSeat</Text>
+    <Stage>
+      <Animated.View style={[ui.order, {
+        borderColor: LIME, borderWidth: glow.interpolate({ inputRange: [0, 1], outputRange: [1.5, 3] }),
+      }]}>
+        <View style={ui.rowTop}>
+          <Text style={ui.plate}>GHI 9012</Text>
+          <View style={ui.critBadge}><Text style={ui.critTxt}>CRITICAL</Text></View>
         </View>
-        <Text style={il.brandTagline}>Bugo – Igpit Route</Text>
-        <View style={il.statChips}>
-          {[
-            { label: 'Live PUVs',   color: COLORS.primary },
-            { label: 'Real-Time',   color: COLORS.success },
-            { label: 'Smart Alerts',color: COLORS.warning },
-          ].map(({ label, color }) => (
-            <View key={label} style={[il.chip, { backgroundColor: color + '18', borderColor: color + '50' }]}>
-              <Text style={[il.chipText, { color }]}>{label}</Text>
-            </View>
-          ))}
+        <Text style={ui.muted}>0.6 km · Bulua terminal</Text>
+        <View style={[ui.rowTop, { justifyContent: 'flex-start', gap: 6, marginTop: 8 }]}>
+          <Chip label="24 / 20 riders" kind="over" />
+          <Chip label="Cabin 38°C" kind="over" />
         </View>
-      </MiniCard>
-    </Illustration>
+      </Animated.View>
+      <View style={ui.order}>
+        <View style={ui.rowTop}>
+          <Text style={ui.plate}>DEF 5678</Text>
+          <Chip label="Warning" kind="near" />
+        </View>
+        <Text style={ui.muted}>1.1 km · CM Recto Ave</Text>
+      </View>
+    </Stage>
   );
 }
 
-function P1_HomeScreen() {
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.35, duration: 700, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 1,    duration: 700, useNativeDriver: true }),
-    ])).start();
-  }, []);
-
+function E_LiveCabin() {
+  const riders = useTicker(18, 24, 520);
   return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        {/* Search bar mock */}
-        <Row style={{ marginBottom: 12 }}>
-          <View style={mu.searchBar}>
-            <Label style={{ color: COLORS.textMuted }}>Search plate, route…</Label>
-          </View>
-        </Row>
-
-        {/* PUV card 1 */}
-        <View style={mu.puvCard}>
-          <Row style={{ marginBottom: 6 }}>
-            <Value style={{ flex: 1 }}>CDO – 001 – AB</Value>
-            <Pill label="AVAILABLE" color={COLORS.success} bg={COLORS.successBg} />
-          </Row>
-          <CapBar pct={58} color={COLORS.success} />
-          <Row style={{ marginTop: 5 }}>
-            <Label>12 / 20 passengers</Label>
-            <Value style={{ color: COLORS.success }}>58%</Value>
-          </Row>
-        </View>
-
-        {/* PUV card 2 */}
-        <View style={[mu.puvCard, { borderLeftWidth: 3, borderLeftColor: COLORS.danger }]}>
-          <Row style={{ marginBottom: 6 }}>
-            <Value style={{ flex: 1 }}>CDO – 023 – CD</Value>
-            <Pill label="OVERLOADED" color={COLORS.danger} bg={COLORS.dangerBg} />
-          </Row>
-          <CapBar pct={100} color={COLORS.danger} />
-          <Row style={{ marginTop: 5 }}>
-            <Label>22 / 20 passengers</Label>
-            <Animated.View style={{ transform: [{ scale: pulse }] }}>
-              <Value style={{ color: COLORS.danger }}>110%</Value>
-            </Animated.View>
-          </Row>
-        </View>
-      </MiniCard>
-    </Illustration>
+    <Stage style={{ alignItems: 'center', paddingVertical: 18 }}>
+      <Text style={[ui.kicker, { marginBottom: 10 }]}>LIVE CABIN · GHI 9012</Text>
+      <BusSeats passengers={riders} capacity={20} />
+    </Stage>
   );
 }
 
-function P2_Capacity() {
-  const barW  = useRef(new Animated.Value(0)).current;
-  const textO = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(barW, { toValue: 1, duration: 900, easing: ease, useNativeDriver: true }),
-      Animated.timing(textO, { toValue: 1, duration: 300, useNativeDriver: true }),
-    ]).start();
-  }, []);
-
-  const SEATS = Array.from({ length: 20 }, (_, i) => i < 14);
-
-  return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Label style={{ marginBottom: 8 }}>CDO – 045 · Capacity</Label>
-        {/* Animated bar */}
-        <View style={[mu.barBg, { height: 12, borderRadius: 6, marginBottom: 8 }]}>
-          <Animated.View style={[
-            mu.barFill,
-            { height: 12, borderRadius: 6, backgroundColor: COLORS.warning, transform: [{ scaleX: barW }] },
-          ]} />
-        </View>
-        <Row style={{ marginBottom: 14 }}>
-          <Label>14 / 20 passengers</Label>
-          <Animated.Text style={[mu.value, { color: COLORS.warning, opacity: textO }]}>70%</Animated.Text>
-        </Row>
-        {/* Seat grid */}
-        <View style={il.seatGrid}>
-          {SEATS.map((filled, i) => (
-            <View key={i} style={[il.seat, filled ? il.seatFilled : il.seatEmpty]} />
-          ))}
-        </View>
-        <Animated.Text style={[mu.label, { textAlign: 'center', marginTop: 8, opacity: textO }]}>
-          6 seats remaining
-        </Animated.Text>
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-function P3_PuvDetail() {
-  return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Row style={{ marginBottom: 10 }}>
-          <Value style={{ fontSize: 15, flex: 1 }}>CDO – 001 – AB</Value>
-          <Pill label="AVAILABLE" color={COLORS.success} bg={COLORS.successBg} />
-        </Row>
-
-        {[
-          ['Driver',   'Juan Dela Cruz'],
-          ['Route',    'Bugo – Igpit'],
-          ['Company',  'CDO Transit Co.'],
-          ['Location', 'Near Shell CDO'],
-        ].map(([k, v]) => (
-          <Row key={k} style={{ paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: COLORS.border }}>
-            <Label style={{ width: 64 }}>{k}</Label>
-            <Value style={{ flex: 1 }}>{v}</Value>
-          </Row>
-        ))}
-
-        <TouchableOpacity style={[il.actionBtn, { backgroundColor: COLORS.primary, marginTop: 12 }]}>
-          <Text style={il.actionBtnText}>Report an Issue</Text>
-        </TouchableOpacity>
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-function P4_Report() {
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.04, duration: 600, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 1,    duration: 600, useNativeDriver: true }),
-    ])).start();
-  }, []);
-
-  return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Label style={{ marginBottom: 10 }}>Report a Violation</Label>
-
-        {['Overloading', 'Route Deviation', 'Driver Misconduct', 'Other'].map((type, i) => (
-          <View key={type} style={[mu.checkRow, i === 0 && { borderColor: COLORS.primary, backgroundColor: COLORS.primaryGlow }]}>
-            <View style={[mu.checkBox, i === 0 && { backgroundColor: COLORS.primary }]}>
-              {i === 0 && <Text style={{ color: '#fff', fontSize: 8, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' }}>✓</Text>}
-            </View>
-            <Label style={i === 0 ? { color: COLORS.primary } : {}}>{type}</Label>
-          </View>
-        ))}
-
-        <Animated.View style={{ transform: [{ scale: pulse }], marginTop: 12 }}>
-          <View style={[il.actionBtn, { backgroundColor: COLORS.primary }]}>
-            <Text style={il.actionBtnText}>Submit Report</Text>
-          </View>
-        </Animated.View>
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-function P5_Profile() {
-  return (
-    <Illustration bgColor={COLORS.pageBg}>
-      <MiniCard>
-        {/* Avatar row */}
-        <Row style={{ gap: 10, marginBottom: 14 }}>
-          <View style={il.avatar}>
-            <Text style={il.avatarText}>M</Text>
-          </View>
-          <View>
-            <Value style={{ fontSize: 13 }}>Maria Santos</Value>
-            <Label style={{ color: COLORS.primary }}>@maria_santos</Label>
-          </View>
-        </Row>
-
-        {[
-          { label: 'Update Mobile Number',  icon: '📱' },
-          { label: 'Change Password',       icon: '🔒' },
-          { label: 'Switch to Enforcer',    icon: '🛡' },
-          { label: 'Replay Tutorial',       icon: '▶' },
-          { label: 'Log Out',               icon: '⏻', danger: true },
-        ].map(({ label, icon, danger }) => (
-          <Row key={label} style={[mu.menuRow, danger && { borderTopWidth: 1, borderTopColor: COLORS.border, marginTop: 6, paddingTop: 10 }]}>
-            <Text style={{ fontSize: 12, width: 20 }}>{icon}</Text>
-            <Label style={danger ? { color: COLORS.danger } : {}}>{label}</Label>
-          </Row>
-        ))}
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-// ─── ENFORCER SLIDES ──────────────────────────────────────────────────────────
-
-function E0_Welcome() {
-  const pulse = useRef(new Animated.Value(0.9)).current;
-  useEffect(() => {
-    Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.08, duration: 900, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 0.9,  duration: 900, useNativeDriver: true }),
-    ])).start();
-  }, []);
-
-  return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard style={il.centeredCard}>
-        <View style={il.brandRow}>
-          <View style={[il.brandDot, { backgroundColor: COLORS.danger }]} />
-          <Text style={il.brandName}>MaxSeat</Text>
-        </View>
-        <Text style={il.brandTagline}>Enforcer Dashboard</Text>
-        <Animated.View style={[il.critBadge, { transform: [{ scale: pulse }] }]}>
-          <Text style={il.critBadgeText}>DISPATCH ACTIVE</Text>
-        </Animated.View>
-        <View style={il.statChips}>
-          {[
-            { label: 'Monitor',   color: COLORS.danger  },
-            { label: 'Intercept', color: COLORS.warning },
-            { label: 'Log',       color: COLORS.primary },
-          ].map(({ label, color }) => (
-            <View key={label} style={[il.chip, { backgroundColor: color + '18', borderColor: color + '50' }]}>
-              <Text style={[il.chipText, { color }]}>{label}</Text>
-            </View>
-          ))}
-        </View>
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-function E1_DispatchList() {
-  return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Label style={{ marginBottom: 10 }}>2 Active Violations · Bugo–Igpit</Label>
-
-        {/* Violation card 1 — critical */}
-        <View style={[mu.puvCard, { borderLeftWidth: 3, borderLeftColor: COLORS.danger, marginBottom: 10 }]}>
-          <Row style={{ marginBottom: 4 }}>
-            <Value style={{ flex: 1, color: COLORS.textPrimary }}>CDO – 023</Value>
-            <View style={[mu.pill, { backgroundColor: COLORS.dangerBg, borderColor: COLORS.danger + '60' }]}>
-              <Text style={[mu.pillText, { color: COLORS.danger }]}>CRITICAL</Text>
-            </View>
-          </Row>
-          <Label>Overloading · 22 / 20 pax</Label>
-          <Label style={{ color: COLORS.textMuted, marginTop: 2 }}>Near Shell CDO</Label>
-        </View>
-
-        {/* Violation card 2 */}
-        <View style={[mu.puvCard, { borderLeftWidth: 3, borderLeftColor: COLORS.warning }]}>
-          <Row style={{ marginBottom: 4 }}>
-            <Value style={{ flex: 1 }}>CDO – 045</Value>
-            <View style={[mu.pill, { backgroundColor: COLORS.warningBg, borderColor: COLORS.warning + '60' }]}>
-              <Text style={[mu.pillText, { color: COLORS.warning }]}>WARNING</Text>
-            </View>
-          </Row>
-          <Label>Elevated Temp · 38.5°C</Label>
-          <Label style={{ color: COLORS.textMuted, marginTop: 2 }}>Igpit Terminal</Label>
-        </View>
-
-        <Label style={{ color: COLORS.primary, textAlign: 'right', marginTop: 8 }}>Tap a card to respond →</Label>
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-function E2_ActionScreen() {
+function E_Action() {
   const stamp = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const t = setTimeout(() => {
-      Animated.spring(stamp, { toValue: 1, tension: 60, friction: 7, useNativeDriver: true }).start();
-    }, 800);
+      Animated.spring(stamp, { toValue: 1, tension: 60, friction: 6, useNativeDriver: false }).start();
+    }, 900);
     return () => clearTimeout(t);
-  }, []);
-
+  }, [stamp]);
   return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Row style={{ marginBottom: 10 }}>
-          <Value>CDO – 023 – AB</Value>
-          <View style={[mu.pill, { backgroundColor: COLORS.dangerBg, borderColor: COLORS.danger + '60' }]}>
-            <Text style={[mu.pillText, { color: COLORS.danger }]}>CRITICAL</Text>
+    <Stage>
+      <Text style={[ui.kicker, { marginBottom: 10 }]}>CHOOSE ACTION · GHI 9012</Text>
+      {[
+        ['Warning', 'Ask 4 riders to transfer'],
+        ['Ticket', 'Overloading fine · 2nd offense'],
+        ['Hold the unit', 'Call it in, wait for backup'],
+      ].map(([t, sub], i) => (
+        <View key={t} style={[ui.option, i === 1 && ui.optionOn]}>
+          <View style={[ui.radio, i === 1 && ui.radioOn]}>{i === 1 && <View style={ui.radioDot} />}</View>
+          <View>
+            <Text style={ui.optionTxt}>{t}</Text>
+            <Text style={ui.small}>{sub}</Text>
           </View>
-        </Row>
-
-        {[
-          ['Violation',  'Overloading'],
-          ['Action',     'Issue Warning'],
-          ['Fine',       '₱500.00'],
-          ['Officer',    'Lt. Reyes'],
-        ].map(([k, v]) => (
-          <Row key={k} style={{ paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: COLORS.border }}>
-            <Label style={{ width: 64 }}>{k}</Label>
-            <Value style={{ flex: 1 }}>{v}</Value>
-          </Row>
-        ))}
-
-        <View style={{ alignItems: 'center', marginTop: 14 }}>
-          <Animated.View style={[il.loggedBadge, { transform: [{ scale: stamp }] }]}>
-            <Text style={il.loggedText}>RESPONSE LOGGED</Text>
-          </Animated.View>
         </View>
-      </MiniCard>
-    </Illustration>
+      ))}
+      <View style={{ alignItems: 'center', marginTop: 6, height: 34, justifyContent: 'center' }}>
+        <Animated.View style={[ui.logged, { transform: [{ scale: stamp.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }]}>
+          <Text style={ui.loggedTxt}>✓  Response logged</Text>
+        </Animated.View>
+      </View>
+    </Stage>
   );
 }
 
-function E3_MapView() {
-  const dots = useRef([...Array(5)].map(() => new Animated.Value(0))).current;
-  const ring = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    Animated.stagger(200, dots.map(a =>
-      Animated.spring(a, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true })
-    )).start(() => {
-      Animated.loop(Animated.sequence([
-        Animated.timing(ring, { toValue: 1.8, duration: 800, useNativeDriver: true }),
-        Animated.timing(ring, { toValue: 1,   duration: 0,   useNativeDriver: true }),
-        Animated.delay(600),
-      ])).start();
-    });
-  }, []);
-
-  const DOT_POS = [5, 24, 47, 69, 88];
-
+function E_Map() {
+  const ring = useLoop(800);
+  const PINS = [8, 30, 52, 74, 92];
   return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Row style={{ marginBottom: 6 }}>
-          <Value>Live Map · Bugo–Igpit</Value>
-          <View style={[mu.pill, { backgroundColor: COLORS.successBg, borderColor: COLORS.success + '60' }]}>
-            <View style={[mu.pillDot, { backgroundColor: COLORS.success }]} />
-            <Text style={[mu.pillText, { color: COLORS.success }]}>LIVE</Text>
-          </View>
-        </Row>
-        <Label style={{ marginBottom: 16 }}>5 active PUVs on route</Label>
-
-        {/* Route track */}
-        <View style={il.routeWrap}>
-          {/* Route line */}
-          <View style={il.routeLine} />
-          {/* Station dots */}
-          <View style={[il.stationDot, { left: '0%' }]} />
-          <View style={[il.stationDot, { left: '96%' }]} />
-
-          {/* PUV markers */}
-          {DOT_POS.map((pct, i) => {
-            const isAlert = i === 2;
-            return (
-              <Animated.View
-                key={i}
-                style={[
-                  il.puvDot,
-                  isAlert && { backgroundColor: COLORS.danger },
-                  { left: `${pct}%`, opacity: dots[i], transform: [{ scale: dots[i] }] },
-                ]}
-              >
-                {isAlert && (
-                  <Animated.View style={[
-                    il.puvRing,
-                    {
-                      transform: [{ scale: ring }],
-                      opacity: ring.interpolate({ inputRange: [1, 1.8], outputRange: [0.8, 0] }),
-                    },
-                  ]} />
-                )}
-              </Animated.View>
-            );
-          })}
-        </View>
-
-        <Row style={{ marginTop: 18 }}>
-          {[
-            { color: COLORS.primary, label: 'Normal' },
-            { color: COLORS.danger,  label: 'Alert' },
-          ].map(({ color, label }) => (
-            <Row key={label} style={{ gap: 5, alignItems: 'center', marginRight: 16 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color }} />
-              <Label>{label}</Label>
-            </Row>
-          ))}
-        </Row>
-      </MiniCard>
-    </Illustration>
-  );
-}
-
-function E4_LogOut() {
-  return (
-    <Illustration bgColor={COLORS.hoverBg}>
-      <MiniCard>
-        <Label style={{ marginBottom: 12 }}>Enforcer Best Practices</Label>
-
-        {[
-          { icon: '📋', title: 'Log every violation',   detail: 'Fill in all fields before submitting' },
-          { icon: '🗺',  title: 'Use Map view',          detail: 'Monitor PUV positions across the route' },
-          { icon: '🔄',  title: 'Refresh regularly',     detail: 'Pull down on list to get latest data' },
-          { icon: '⏻',  title: 'Log out after shift',   detail: 'Keeps dispatch records accurate' },
-        ].map(({ icon, title, detail }) => (
-          <Row key={title} style={{ gap: 10, marginBottom: 10, alignItems: 'flex-start' }}>
-            <Text style={{ fontSize: 16, width: 22 }}>{icon}</Text>
-            <View style={{ flex: 1 }}>
-              <Value style={{ fontSize: 12, marginBottom: 1 }}>{title}</Value>
-              <Label style={{ lineHeight: 14 }}>{detail}</Label>
+    <Stage>
+      <View style={ui.rowTop}>
+        <Text style={ui.plate}>Live map</Text>
+        <Chip label="5 PUVs" kind="free" />
+      </View>
+      <Text style={[ui.muted, { marginBottom: 26 }]}>Flagged PUVs pulse in lime</Text>
+      <View style={ui.mapBox}>
+        <View style={ui.routeLine} />
+        {PINS.map((pct, i) => {
+          const flagged = i === 2;
+          return (
+            <View key={pct} style={[ui.pinWrap, { left: `${pct}%` }]}>
+              {flagged && (
+                <Animated.View style={[ui.pulse, {
+                  transform: [{ scale: ring.interpolate({ inputRange: [0, 1], outputRange: [1, 2] }) }],
+                  opacity: ring.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }),
+                }]} />
+              )}
+              <View style={[ui.pin, flagged && { backgroundColor: LIME, borderColor: INK_ON_LIME }]} />
             </View>
-          </Row>
-        ))}
-      </MiniCard>
-    </Illustration>
+          );
+        })}
+      </View>
+      <View style={[ui.rowTop, { justifyContent: 'flex-start', gap: 16, marginTop: 18 }]}>
+        <View style={ui.legend}><View style={[ui.legendDot, { backgroundColor: COLORS.primary }]} /><Text style={ui.small}>Normal</Text></View>
+        <View style={ui.legend}><View style={[ui.legendDot, { backgroundColor: LIME }]} /><Text style={ui.small}>Needs action</Text></View>
+      </View>
+    </Stage>
   );
 }
 
-// ─── SLIDE DEFINITIONS ────────────────────────────────────────────────────────
+function E_Habits() {
+  return (
+    <Stage>
+      {[
+        ['📝', 'Log every response', 'Complete records protect you and the riders'],
+        ['🔄', 'Refresh often', 'Pull down on the list for the latest data'],
+        ['🗺', 'Use the map', 'Spot flagged PUVs near you fast'],
+        ['⏻', 'Log out after your shift', 'Keeps dispatch records accurate'],
+      ].map(([icon, t, sub]) => (
+        <View key={t} style={ui.menuRow}>
+          <Text style={ui.menuIcon}>{icon}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={ui.optionTxt}>{t}</Text>
+            <Text style={ui.small}>{sub}</Text>
+          </View>
+        </View>
+      ))}
+    </Stage>
+  );
+}
+
+// ─── SLIDES ───────────────────────────────────────────────────────────────────
 
 const PASSENGER_SLIDES = [
-  { Scene: P0_Welcome,  title: 'Welcome to MaxSeat',           sub: 'Your smart commute companion for the Bugo–Igpit corridor. Let\'s show you around.' },
-  { Scene: P1_HomeScreen, title: 'Track Every Bus Live',       sub: 'The Home tab shows all active PUVs with live capacity, route, and driver info. Pull down to refresh.' },
-  { Scene: P2_Capacity, title: 'Know Before You Board',        sub: 'Each card shows a real-time capacity bar. Green = seats available, yellow = nearly full, red = overloaded.' },
-  { Scene: P3_PuvDetail, title: 'Tap for Full PUV Details',   sub: 'Tap any PUV card to see the driver, company, exact location, and an option to report directly from that screen.' },
-  { Scene: P4_Report,   title: 'Report Issues Instantly',      sub: 'Use the Reports tab to flag overloading, route deviations, or misconduct. Your report goes straight to enforcers.' },
-  { Scene: P5_Profile,  title: 'Manage Your Account',          sub: 'Update your mobile number, change your password, replay this tutorial, or switch to enforcer mode from the Profile tab.' },
+  { Scene: P_Welcome,   title: 'Maayong adlaw! Welcome to MaxSeat', sub: 'See how full each PUV is before it reaches your stop on the Bugo – Igpit route.' },
+  { Scene: P_FindPuv,   title: 'Find a PUV',             sub: 'A plain outline means seats are free. More lime means it is getting full. Solid lime means overloaded.' },
+  { Scene: P_LiveCabin, title: 'See inside, live',       sub: 'Tap a PUV to see its live cabin. Each person is a rider. Lime people are standing because every seat is taken.' },
+  { Scene: P_LiveMap,   title: 'Follow it on the map',   sub: 'Watch your PUV move in real time and see how many minutes until it reaches you.' },
+  { Scene: P_Report,    title: 'Report a problem',       sub: 'Overloaded or reckless? Send a report in a few taps. It goes straight to enforcers.' },
+  { Scene: P_Profile,   title: 'Make it yours',          sub: 'Dark mode follows your phone. Switch to Enforcer mode or replay this guide from Profile.' },
 ];
 
 const ENFORCER_SLIDES = [
-  { Scene: E0_Welcome,      title: 'MaxSeat Dispatch Dashboard', sub: 'Monitor all PUVs on the Bugo–Igpit route and respond to violations in real time.' },
-  { Scene: E1_DispatchList, title: 'View Active Violations',     sub: 'Dispatch orders are sorted by severity. Critical violations (overloading) appear in red. Tap any card to act.' },
-  { Scene: E2_ActionScreen, title: 'Log Your Response',          sub: 'Fill in violation type, action taken, fine amount, and remarks, then submit. The log is time-stamped automatically.' },
-  { Scene: E3_MapView,      title: 'Monitor the Route on Map',   sub: 'Switch to Map view in Dispatch to see every PUV\'s live position. Red markers indicate flagged vehicles.' },
-  { Scene: E4_LogOut,       title: 'Enforcer Best Practices',    sub: 'Log every violation fully, refresh the dispatch list regularly, and always log out when your shift ends.' },
+  { Scene: E_Welcome,   title: 'Welcome, enforcer',          sub: 'MaxSeat shows you which PUVs need attention on the Bugo – Igpit route, live.' },
+  { Scene: E_Dispatch,  title: 'Your dispatch board',        sub: 'Violations are sorted by how serious they are. Solid lime means critical. Tap one to respond.' },
+  { Scene: E_LiveCabin, title: 'See inside before you act',  sub: 'The live cabin view shows every seat. Lime people are standing riders over the limit.' },
+  { Scene: E_Action,    title: 'Log your action',            sub: 'Choose warning, ticket or hold, add a photo, then submit. The time is saved for you.' },
+  { Scene: E_Map,       title: 'Watch the whole route',      sub: 'Map view shows every PUV live. The ones that need action pulse in lime.' },
+  { Scene: E_Habits,    title: 'Good habits',                sub: 'Log every response, refresh often, and log out when your shift ends.' },
 ];
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ─── SCREEN ───────────────────────────────────────────────────────────────────
 
 export default function OnboardingScreen() {
   const { user, completeOnboarding } = useAuth();
-
   const role   = user?.role || 'passenger';
-  const slides = role === 'passenger' ? PASSENGER_SLIDES : ENFORCER_SLIDES;
-  const accent = role === 'passenger' ? COLORS.primary : COLORS.danger;
+  const slides = role === 'enforcer' ? ENFORCER_SLIDES : PASSENGER_SLIDES;
 
   const [idx, setIdx] = useState(0);
+  const busy = useRef(false);
 
-  // Slide transition values (shared)
-  const slideOp = useRef(new Animated.Value(1)).current;
-  const slideX  = useRef(new Animated.Value(0)).current;
-
-  // Bottom text fade
-  const textOp = useRef(new Animated.Value(1)).current;
-  const textY  = useRef(new Animated.Value(0)).current;
+  // JS-driven slide transition. Values only dip briefly; if anything stalls,
+  // the end state is visible because every value rests at "shown".
+  const fade = useRef(new Animated.Value(1)).current;
+  const dx   = useRef(new Animated.Value(0)).current;
 
   const goTo = (next) => {
+    if (busy.current || next === idx || next < 0 || next >= slides.length) return;
+    busy.current = true;
+    const dir = next > idx ? 1 : -1;
     Animated.parallel([
-      Animated.timing(slideOp, { toValue: 0, duration: 160, useNativeDriver: true }),
-      Animated.timing(slideX,  { toValue: -28, duration: 160, easing: ease, useNativeDriver: true }),
-      Animated.timing(textOp,  { toValue: 0, duration: 120, useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 0.15, duration: 140, useNativeDriver: false }),
+      Animated.timing(dx,   { toValue: -24 * dir, duration: 140, easing: ease, useNativeDriver: false }),
     ]).start(() => {
       setIdx(next);
-      slideX.setValue(36);
-      textY.setValue(10);
+      dx.setValue(28 * dir);
       Animated.parallel([
-        Animated.timing(slideOp, { toValue: 1, duration: 280, useNativeDriver: true }),
-        Animated.spring(slideX,  { toValue: 0, tension: 80, friction: 10, useNativeDriver: true }),
-        Animated.timing(textOp,  { toValue: 1, duration: 280, useNativeDriver: true }),
-        Animated.spring(textY,   { toValue: 0, tension: 80, friction: 10, useNativeDriver: true }),
+        Animated.timing(fade, { toValue: 1, duration: 260, useNativeDriver: false }),
+        Animated.spring(dx,   { toValue: 0, tension: 80, friction: 11, useNativeDriver: false }),
       ]).start();
+      busy.current = false;
     });
+    // Safety net: never leave the slide half faded
+    setTimeout(() => { busy.current = false; fade.setValue(1); }, 900);
   };
 
-  const handleNext = () => {
-    if (idx < slides.length - 1) goTo(idx + 1);
-    else completeOnboarding(role);
-  };
-
-  const handleSkip = () => completeOnboarding(role);
-
+  const finish = () => completeOnboarding(role);
   const { Scene, title, sub } = slides[idx];
   const isLast = idx === slides.length - 1;
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.hoverBg} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.pageBg} />
 
-      {/* Skip */}
-      {!isLast && (
-        <TouchableOpacity style={styles.skipBtn} onPress={handleSkip} activeOpacity={0.7}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Step counter */}
-      <View style={styles.stepRow}>
-        <Text style={[styles.stepText, { color: accent }]}>
-          {idx + 1} / {slides.length}
-        </Text>
+      <View style={styles.topBar}>
+        <View style={styles.rolePill}>
+          <Text style={styles.rolePillTxt}>{role === 'enforcer' ? '🛡  Enforcer' : '🚌  Passenger'}</Text>
+        </View>
+        {!isLast ? (
+          <TouchableOpacity onPress={finish} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <Text style={styles.skip}>Skip</Text>
+          </TouchableOpacity>
+        ) : <View />}
       </View>
 
-      {/* Illustration */}
-      <Animated.View
-        style={[styles.illuArea, { opacity: slideOp, transform: [{ translateX: slideX }] }]}
-        key={idx}  // Forces remount on slide change → scene animations restart cleanly
-      >
-        <Scene />
+      <Animated.View style={[styles.sceneArea, { opacity: fade, transform: [{ translateX: dx }] }]}>
+        <Scene key={idx} />
       </Animated.View>
 
-      {/* Text */}
-      <Animated.View style={[styles.textArea, { opacity: textOp, transform: [{ translateY: textY }] }]}>
+      <Animated.View style={[styles.textArea, { opacity: fade }]}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.sub}>{sub}</Text>
       </Animated.View>
 
-      {/* Footer: dots + button */}
       <View style={styles.footer}>
-        <View style={styles.dotsRow}>
+        <View style={styles.dots}>
           {slides.map((_, i) => (
-            <TouchableOpacity key={i} onPress={() => i < idx || i === idx + 1 ? goTo(i) : null}>
-              <View
-                style={[
-                  styles.dot,
-                  i === idx
-                    ? [styles.dotActive, { backgroundColor: accent, width: 22 }]
-                    : { backgroundColor: accent + '35' },
-                ]}
-              />
+            <TouchableOpacity key={i} onPress={() => goTo(i)} hitSlop={{ top: 10, bottom: 10, left: 4, right: 4 }}>
+              <View style={[styles.dot, i === idx ? styles.dotOn : null]} />
             </TouchableOpacity>
           ))}
         </View>
-
-        <TouchableOpacity
-          style={[styles.nextBtn, { backgroundColor: accent }]}
-          onPress={handleNext}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.nextText}>{isLast ? 'Get Started' : 'Next  →'}</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          {idx > 0 && (
+            <TouchableOpacity onPress={() => goTo(idx - 1)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <Text style={styles.back}>Back</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.nextBtn} onPress={isLast ? finish : () => goTo(idx + 1)} activeOpacity={0.85}>
+            <Text style={styles.nextTxt}>{isLast ? 'Get started' : 'Next'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 }
 
-// ─── ILLUSTRATION / MINI-UI STYLES ───────────────────────────────────────────
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 
-const il = StyleSheet.create({
-  wrap:     { width: W - 48, borderRadius: RADIUS.xl, overflow: 'hidden', alignSelf: 'center' },
+const ui = StyleSheet.create({
+  stage: {
+    width: W - 48, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, padding: 16,
+    borderWidth: IS_DARK ? 1 : 0, borderColor: COLORS.border, ...SHADOW.md,
+  },
+  route:      { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
+  featureRow: { flexDirection: 'row', gap: 10 },
+  feature:    { alignItems: 'center', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, paddingVertical: 12, width: (W - 48 - 32 - 20) / 3 },
+  featureIcon:{ fontSize: 22, marginBottom: 6 },
+  featureTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
-  centeredCard: { alignItems: 'center', paddingVertical: 24 },
+  kicker:  { fontSize: 11, fontFamily: FONTS.extraBold, letterSpacing: 1, color: COLORS.textSecondary },
+  rowTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  plate:   { fontSize: 16, fontFamily: FONTS.extraBold, color: COLORS.textPrimary },
+  muted:   { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textSecondary },
+  small:   { fontSize: 11.5, fontFamily: FONTS.regular, color: COLORS.textSecondary },
 
-  brandRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  brandDot:    { width: 12, height: 12, borderRadius: 6 },
-  brandName:   { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  brandTagline:{ fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary, marginBottom: 16 },
+  chip:    { borderWidth: 1.5, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  chipTxt: { fontSize: 11, fontFamily: FONTS.extraBold },
 
-  statChips:  { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
-  chip:       { borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1 },
-  chipText:   { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
-
-  critBadge:     { backgroundColor: COLORS.dangerBg, borderRadius: RADIUS.badge, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16, borderWidth: 1, borderColor: COLORS.dangerBorder },
-  critBadgeText: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 1 },
-
-  seatGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center' },
-  seat:     { width: 16, height: 16, borderRadius: 3 },
-  seatFilled: { backgroundColor: COLORS.warning },
-  seatEmpty:  { backgroundColor: COLORS.border },
-
-  avatar:     { width: 36, height: 36, borderRadius: 10, backgroundColor: COLORS.primaryGlow, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.primary + '55' },
-  avatarText: { fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
-
-  actionBtn:    { borderRadius: RADIUS.sm, height: 34, justifyContent: 'center', alignItems: 'center' },
-  actionBtnText:{ color: '#fff', fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
-
-  loggedBadge: { backgroundColor: COLORS.success, borderRadius: RADIUS.badge, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: COLORS.successBorder },
-  loggedText:  { color: '#fff', fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 1.5 },
-
-  routeWrap:   { height: 24, position: 'relative', justifyContent: 'center', marginHorizontal: 8 },
-  routeLine:   { height: 3, backgroundColor: COLORS.border, borderRadius: 2, position: 'absolute', left: 0, right: 0 },
-  stationDot:  { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.textMuted, top: 7, marginTop: -5 },
-  puvDot:      { position: 'absolute', width: 14, height: 14, borderRadius: 7, backgroundColor: COLORS.primary, top: 5, marginTop: -7, justifyContent: 'center', alignItems: 'center' },
-  puvRing:     { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: COLORS.danger },
-});
-
-const mu = StyleSheet.create({
-  card:    { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 16, width: W - 48, ...SHADOW.md },
-  row:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  label:   { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
-  value:   { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-
-  pill:     { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: RADIUS.badge, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1 },
-  pillDot:  { width: 5, height: 5, borderRadius: 2.5 },
-  pillText: { fontSize: 9, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
-
-  barBg:   { height: 7, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden', marginVertical: 5 },
+  puvRow:  { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8 },
+  barBg:   { height: 7, borderRadius: 4, backgroundColor: COLORS.border, overflow: 'hidden', marginTop: 10, marginBottom: 5 },
   barFill: { height: 7, borderRadius: 4 },
 
-  searchBar:   { flex: 1, height: 32, backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, justifyContent: 'center', paddingHorizontal: 12 },
-  puvCard:     { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.sm, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
+  etaPill: { backgroundColor: LIME, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  etaTxt:  { fontSize: 13, fontFamily: FONTS.extraBold, color: INK_ON_LIME },
+  mapBox:  { height: 34, justifyContent: 'center', marginHorizontal: 4 },
+  routeLine: { position: 'absolute', left: 0, right: 0, height: 5, borderRadius: 3, backgroundColor: COLORS.primary },
+  stop:    { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.cardBg, borderWidth: 3, borderColor: COLORS.primary },
+  me:      { position: 'absolute', width: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.primary, borderWidth: 4, borderColor: COLORS.cardBg },
+  busPin:  { position: 'absolute', left: 4, backgroundColor: COLORS.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 2, borderColor: LIME },
+  busPinTxt: { fontSize: 11, fontFamily: FONTS.extraBold, color: '#FFFFFF' },
 
-  checkRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: RADIUS.sm, padding: 9, borderWidth: 1, borderColor: COLORS.border, marginBottom: 6 },
-  checkBox:  { width: 14, height: 14, borderRadius: 4, borderWidth: 1.5, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
+  option:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, padding: 10, marginBottom: 7 },
+  optionOn:  { borderColor: LIME, backgroundColor: IS_DARK ? 'rgba(198,242,78,0.10)' : 'rgba(198,242,78,0.16)' },
+  radio:     { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
+  radioOn:   { borderColor: COLORS.primary },
+  radioDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
+  optionTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  cta:       { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, height: 42, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  ctaTxt:    { color: '#FFFFFF', fontSize: 14, fontFamily: FONTS.extraBold },
 
-  menuRow: { paddingVertical: 7, gap: 8, alignItems: 'center' },
+  avatar:    { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  avatarTxt: { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
+  menuRow:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: COLORS.borderLight },
+  menuIcon:  { width: 22, fontSize: 15, textAlign: 'center' },
+  menuTxt:   { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+
+  order:     { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8, borderWidth: 1.5, borderColor: COLORS.pageBg },
+  critBadge: { backgroundColor: LIME, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
+  critTxt:   { fontSize: 10, fontFamily: FONTS.extraBold, letterSpacing: 0.8, color: INK_ON_LIME },
+  logged:    { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 },
+  loggedTxt: { color: '#FFFFFF', fontSize: 12.5, fontFamily: FONTS.extraBold },
+
+  pinWrap:   { position: 'absolute', width: 18, height: 18, marginLeft: -9, alignItems: 'center', justifyContent: 'center' },
+  pin:       { width: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.primary, borderWidth: 3, borderColor: COLORS.cardBg },
+  pulse:     { position: 'absolute', width: 18, height: 18, borderRadius: 9, borderWidth: 3, borderColor: LIME },
+  legend:    { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
 });
 
-// ─── MAIN SCREEN STYLES ───────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.hoverBg },
+  root:      { flex: 1, backgroundColor: COLORS.pageBg },
+  topBar:    { paddingTop: 52, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  rolePill:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
+  rolePillTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  skip:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
 
-  skipBtn:  { position: 'absolute', top: 52, right: 24, zIndex: 10, paddingVertical: 8, paddingHorizontal: 4 },
-  skipText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted },
+  sceneArea: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  textArea:  { paddingHorizontal: 28, paddingTop: 12 },
+  title:     { fontSize: 24, fontFamily: FONTS.extraBold, color: COLORS.textPrimary, marginBottom: 8, lineHeight: 30 },
+  sub:       { fontSize: 14.5, fontFamily: FONTS.regular, color: COLORS.textSecondary, lineHeight: 21.5 },
 
-  stepRow: { paddingTop: 52, paddingHorizontal: 24, marginBottom: 8 },
-  stepText:{ fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
-
-  illuArea: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
-
-  textArea: { paddingHorizontal: 28, paddingBottom: 8, paddingTop: 20 },
-  title:    { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 8, lineHeight: 29 },
-  sub:      { fontSize: 14, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 21 },
-
-  footer:  { paddingHorizontal: 28, paddingBottom: 44, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dotsRow: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  dot:     { height: 7, width: 7, borderRadius: 3.5 },
-  dotActive: { height: 7, borderRadius: 3.5 },
-
-  nextBtn:  { borderRadius: RADIUS.md, paddingHorizontal: 24, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button, shadowColor: '#000' },
-  nextText: { color: '#fff', fontSize: 14, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  footer:    { paddingHorizontal: 28, paddingBottom: 40, paddingTop: 22, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dots:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot:       { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.border },
+  dotOn:     { width: 22, backgroundColor: COLORS.primary },
+  back:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
+  nextBtn:   { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 26, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button },
+  nextTxt:   { color: '#FFFFFF', fontSize: 15, fontFamily: FONTS.extraBold },
 });
