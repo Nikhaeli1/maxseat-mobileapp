@@ -36,26 +36,26 @@ export default function HomeScreen({ navigation }) {
     {
       targetRef: topBarRef,
       icon: '🚌',
-      title: 'Live PUV Tracker',
-      desc: 'This is your main dashboard, showing all active PUVs on the Bugo–Igpit corridor in real time. Critical alerts appear here.',
+      title: 'Your live PUV list',
+      desc: 'Every active PUV on the Bugo–Igpit route, updated live. Pull down anytime to refresh.',
     },
     {
       targetRef: searchRef,
       icon: '🔍',
-      title: 'Smart Search',
-      desc: 'Search by plate number, driver name, or route to instantly filter the list. Results update as you type.',
+      title: 'Find one fast',
+      desc: 'Type a plate number, driver or route. The list filters as you type.',
     },
     {
       targetRef: listRef,
       icon: '🎫',
-      title: 'PUV Cards',
-      desc: 'Each card shows a vehicle\'s real-time capacity, status, driver, and location. Tap any card to see full details or file a violation report.',
+      title: 'Read a card at a glance',
+      desc: 'Plain outline = seats free. Lime outline = nearly full. Solid lime = overloaded. Tap a card to see the live cabin view.',
     },
     {
       targetRect: { h: 82, fromBottom: true },
       icon: '🧭',
-      title: 'Bottom Navigation',
-      desc: 'Use these tabs to switch between the Live Tracker, Map View, your submitted Reports, and Profile settings.',
+      title: 'Get around',
+      desc: 'PUVs, Live map, Reports and Profile. You can replay this tour anytime from Profile.',
     },
   ]).current;
 

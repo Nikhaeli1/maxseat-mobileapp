@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Animated } from 'react-native';
+import RoleSwitchOverlay from './src/components/RoleSwitchOverlay';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Font from 'expo-font';
@@ -102,6 +103,14 @@ function RootNavigator() {
   );
 }
 
+// Full-screen Passenger ⇄ Enforcer transition, drawn above everything.
+function RoleSwitchHost() {
+  const { roleSwitch } = useAuth();
+  const last = useRef({ from: 'passenger', to: 'enforcer' });
+  if (roleSwitch) last.current = roleSwitch;
+  return <RoleSwitchOverlay active={!!roleSwitch} from={last.current.from} to={last.current.to} />;
+}
+
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -119,12 +128,15 @@ export default function App() {
 
   return (
     <AuthProvider>
-      {/* TutorialProvider sits ABOVE the navigator so coach marks can cover
-          the tab bar while staying in the same window as the elements they
-          measure — both are required for the highlights to line up. */}
-      <TutorialProvider>
-        <RootNavigator />
-      </TutorialProvider>
+      <View style={{ flex: 1 }}>
+        {/* TutorialProvider sits ABOVE the navigator so coach marks can cover
+            the tab bar while staying in the same window as the elements they
+            measure — both are required for the highlights to line up. */}
+        <TutorialProvider>
+          <RootNavigator />
+        </TutorialProvider>
+        <RoleSwitchHost />
+      </View>
     </AuthProvider>
   );
 }

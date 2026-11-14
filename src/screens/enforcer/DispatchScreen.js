@@ -38,26 +38,26 @@ export default function DispatchScreen({ navigation }) {
     {
       targetRef: topBarRef,
       icon: '🛡',
-      title: 'Dispatch Dashboard',
-      desc: 'Your command center showing all active violations on the corridor. Critical violations are flagged with a red badge.',
+      title: 'Your dispatch board',
+      desc: 'All active violations on the route. Critical ones are marked in solid lime.',
     },
     {
       targetRef: toggleRef,
       icon: '🗺',
-      title: 'List & Map Views',
-      desc: 'Switch between List view (violations sorted by severity) and Map view (violations pinned on the live route map).',
+      title: 'List or map',
+      desc: 'List sorts violations by how serious they are. Map shows every flagged PUV live.',
     },
     {
       targetRef: listRef,
       icon: '⚠',
-      title: 'Violation Cards',
-      desc: 'Each card shows a PUV with active violations, severity, and location. Tap any card to open the Action Screen and respond.',
+      title: 'Respond to a violation',
+      desc: 'Tap a card to see the live cabin view, then log a warning, ticket or hold.',
     },
     {
       targetRef: actionsRef,
       icon: '⚡',
-      title: 'Quick Actions',
-      desc: 'Replay this tutorial at any time, switch to Passenger mode to view PUVs as a commuter, or log out to end your enforcer shift.',
+      title: 'Quick actions',
+      desc: 'Replay this tour, switch to Passenger mode, or log out when your shift ends.',
     },
   ]).current;
 

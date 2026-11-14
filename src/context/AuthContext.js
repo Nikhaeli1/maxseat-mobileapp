@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [pendingRole,   setPendingRole]   = useState(null);   // pre-selects role on LoginScreen
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [dashTutorialRequest, setDashTutorialRequest] = useState(null);
+  const [roleSwitch,    setRoleSwitch]    = useState(null);   // { from, to } while the switch animation plays
 
   // ── Restore session on launch ─────────────────────────────────────────────
   useEffect(() => {
@@ -103,19 +104,32 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ── Switch role (logout + return to login with new role pre-selected) ─────
+  // The cover animation plays first; the sign-out happens behind it, then the
+  // cover lifts to reveal sign-in with the new role picked.
   const switchRole = async (newRole) => {
     const role = user?.role;
-    if (role === 'enforcer') await logoutEnforcer();
-    else await logoutPassenger();
-    await AsyncStorage.removeItem(USER_KEY);
-    await AsyncStorage.setItem(LAST_ROLE_KEY, newRole);
-    setPendingRole(newRole);
-    setUser(null);
+    setRoleSwitch({ from: role || 'passenger', to: newRole });
+    await new Promise((r) => setTimeout(r, 520));
+    try {
+      try {
+        if (role === 'enforcer') await logoutEnforcer();
+        else await logoutPassenger();
+      } catch (e) {
+        // signing out on the server failed; still switch locally
+      }
+      await AsyncStorage.removeItem(USER_KEY);
+      await AsyncStorage.setItem(LAST_ROLE_KEY, newRole);
+    } finally {
+      setPendingRole(newRole);
+      setUser(null);
+      // always lift the cover, whatever happened above
+      setTimeout(() => setRoleSwitch(null), 450);
+    }
   };
 
   return (
     <AuthContext.Provider value={{
-      user, loading, login, register, logout, switchRole,
+      user, loading, login, register, logout, switchRole, roleSwitch,
       pendingRole, setPendingRole,
       showOnboarding, completeOnboarding, replayOnboarding,
       dashTutorialRequest, requestDashTutorial, clearDashTutorialRequest,
