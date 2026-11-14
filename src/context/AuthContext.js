@@ -9,7 +9,7 @@ const AuthContext = createContext(null);
 
 const USER_KEY        = '@maxseat_user';
 const LAST_ROLE_KEY   = '@maxseat_last_role';
-const ONBOARDING_KEY  = (role) => `@maxseat_onboarding_v2_${role}`;
+const ONBOARDING_KEY  = (role) => `@maxseat_onboarding_v3_${role}`;
 
 export const AuthProvider = ({ children }) => {
   const [user,          setUser]          = useState(null);   // includes .role
