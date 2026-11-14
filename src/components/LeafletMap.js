@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { COLORS } from '../theme';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { BASE_URL, CARTO_KEY } from '../api/apiService';
@@ -73,6 +74,6 @@ export default function LeafletMap({
 }
 
 const styles = StyleSheet.create({
-  wrap: { overflow: 'hidden', backgroundColor: '#e5e7eb' },
+  wrap: { overflow: 'hidden', backgroundColor: COLORS.border },
   web:  { flex: 1, backgroundColor: 'transparent' },
 });

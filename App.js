@@ -107,9 +107,9 @@ export default function App() {
 
   useEffect(() => {
     Font.loadAsync({
-      PlusJakartaSans_Regular:   require('./assets/fonts/PlusJakartaSans_Regular.ttf'),
-      PlusJakartaSans_SemiBold:  require('./assets/fonts/PlusJakartaSans_SemiBold.ttf'),
-      PlusJakartaSans_ExtraBold: require('./assets/fonts/PlusJakartaSans_ExtraBold.ttf'),
+      Outfit_Regular:   require('./assets/fonts/Outfit_400Regular.ttf'),
+      Outfit_SemiBold:  require('./assets/fonts/Outfit_600SemiBold.ttf'),
+      Outfit_ExtraBold: require('./assets/fonts/Outfit_800ExtraBold.ttf'),
     })
       .then(() => setFontsLoaded(true))
       .catch(() => setFontsLoaded(true));  // fall back to system font if anything fails

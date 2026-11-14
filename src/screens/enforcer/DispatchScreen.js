@@ -139,7 +139,7 @@ export default function DispatchScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
 
       {/* ── TOP BAR ─────────────────────────────────────────────────────── */}
       <View ref={topBarRef} style={styles.topBar}>
@@ -276,41 +276,41 @@ const styles = StyleSheet.create({
   },
   topLeft:    { flex: 1 },
   badgeRow:   { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  enforcerPill: { backgroundColor: 'rgba(37,99,235,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(37,99,235,0.25)' },
-  enforcerPillText: { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
-  criticalBadge: { backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(239,68,68,0.2)' },
-  criticalBadgeText: { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 0.3 },
+  enforcerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)' },
+  enforcerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
+  criticalBadge: { backgroundColor: 'rgba(198,242,78,0.08)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(198,242,78,0.2)' },
+  criticalBadgeText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 0.3 },
 
-  topTitle:   { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
-  topSub:     { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', marginTop: 3 },
+  topTitle:   { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
+  topSub:     { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
   topActions: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: 130 },
   countBadge: { backgroundColor: T.primary, borderRadius: RADIUS.sm, paddingHorizontal: 10, paddingVertical: 4 },
-  countText:  { color: '#fff', fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  countText:  { color: '#fff', fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   iconBtn:     { paddingHorizontal: 10, height: 30, borderRadius: RADIUS.badge, backgroundColor: COLORS.pageBg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
   logoutBtn:   { backgroundColor: COLORS.dangerBg, borderColor: COLORS.dangerBorder },
-  iconBtnText: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  iconBtnText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
 
   toggleRow:       { flexDirection: 'row', backgroundColor: COLORS.cardBg, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   toggleBtn:       { flex: 1, paddingVertical: 13, alignItems: 'center' },
   toggleBtnActive: { borderBottomWidth: 3, borderBottomColor: T.primary },
-  toggleText:      { fontSize: 14, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textMuted },
-  toggleTextActive:{ color: T.primary, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  toggleText:      { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted },
+  toggleTextActive:{ color: T.primary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  loadingText: { marginTop: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600' },
+  loadingText: { marginTop: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   emptyIcon:   { fontSize: 52, marginBottom: 12 },
-  emptyTitle:  { fontSize: 20, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
+  emptyTitle:  { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
   emptySub:    { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 20 },
   refreshBtn:  { borderRadius: RADIUS.md, paddingHorizontal: 24, paddingVertical: 10 },
-  refreshBtnText: { color: '#fff', fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', fontSize: 14 },
+  refreshBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 14 },
 
   list:       { padding: 16 },
-  listHeader: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
 
   map: { flex: 1 },
   callout:         { width: 210, padding: 4 },
-  calloutPlate:    { fontSize: 16, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
-  calloutDetail:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500' },
-  calloutViolation:{ fontSize: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.warning, marginTop: 4 },
-  calloutAction:   { fontSize: 12, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: T.primary, marginTop: 6 },
+  calloutPlate:    { fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
+  calloutDetail:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  calloutViolation:{ fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.warning, marginTop: 4 },
+  calloutAction:   { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, marginTop: 6 },
 });

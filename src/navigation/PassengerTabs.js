@@ -37,7 +37,7 @@ export default function PassengerTabs() {
         },
         tabBarActiveTintColor:   T.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarLabelStyle:        { fontSize: 10, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
+        tabBarLabelStyle:        { fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
       }}
     >
       <Tab.Screen

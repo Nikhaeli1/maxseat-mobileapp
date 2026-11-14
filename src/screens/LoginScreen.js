@@ -59,7 +59,7 @@ export default function LoginScreen({ navigation }) {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="dark-content" backgroundColor={theme.gradFrom} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={theme.gradFrom} />
 
       {/* Role-tinted gradient background */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.gradFrom }]} />
@@ -183,13 +183,13 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root:  { flex: 1, backgroundColor: '#eff6ff' },
+  root:  { flex: 1, backgroundColor: COLORS.hoverBg },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 48 },
 
   // LOGO
   logoSection: { alignItems: 'center', marginBottom: 28 },
   logoImage:   { marginBottom: 10 },
-  appTagline:  { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600' },
+  appTagline:  { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
 
   // GLASS CARD
   card: {
@@ -223,16 +223,16 @@ const styles = StyleSheet.create({
     borderWidth:      1.5,
     gap:              6,
   },
-  roleBtnLabel:       { fontSize: 13, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  roleBtnLabel:       { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
   roleBtnLabelActive: { color: '#fff' },
 
-  cardTitle: { fontSize: 20, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
-  cardSub:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', lineHeight: 18, marginBottom: 22 },
+  cardTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
+  cardSub:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18, marginBottom: 22 },
 
   // FIELDS
   fieldGroup: { marginBottom: 16 },
   fieldLabel: {
-    fontSize: 10, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', textTransform: 'uppercase',
+    fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase',
     letterSpacing: 0.9, color: COLORS.textSecondary, marginBottom: 7,
   },
   inputWrap: {
@@ -240,9 +240,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderRadius: RADIUS.md, borderColor: COLORS.border,
     backgroundColor: COLORS.inputBg, paddingHorizontal: 14, height: 52,
   },
-  input:    { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500' },
+  input:    { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   peekBtn:  { paddingHorizontal: 6, paddingVertical: 4 },
-  peekText: { fontSize: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
+  peekText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
 
   // SUBMIT
   submitBtn: {
@@ -255,14 +255,14 @@ const styles = StyleSheet.create({
     ...SHADOW.button,
     shadowColor:     COLORS.dark,
   },
-  submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
+  submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
 
   registerRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16, marginBottom: 4 },
-  registerText: { fontSize: 13, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', color: COLORS.textSecondary },
-  registerLink: { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  registerText: { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
+  registerLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
 
   footer: {
     textAlign: 'center', color: COLORS.textMuted,
-    fontSize: 11, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', lineHeight: 18, marginTop: 12,
+    fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18, marginTop: 12,
   },
 });

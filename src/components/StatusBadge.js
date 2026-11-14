@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { RADIUS , FONTS} from '../theme';
+import { COLORS, RADIUS, FONTS } from '../theme';
 
 // Colors match web badge system exactly
 const CONFIGS = {
-  critical: { bg: 'rgba(239,68,68,0.1)',   text: '#ef4444', border: 'rgba(239,68,68,0.2)'   },
-  warning:  { bg: 'rgba(245,158,11,0.1)',  text: '#f59e0b', border: 'rgba(245,158,11,0.2)'  },
-  success:  { bg: 'rgba(16,185,129,0.1)',  text: '#10b981', border: 'rgba(16,185,129,0.2)'  },
-  info:     { bg: 'rgba(37,99,235,0.1)',   text: '#2563eb', border: 'rgba(37,99,235,0.2)'   },
-  gray:     { bg: '#f8fafc',               text: '#64748b', border: '#e2e8f0'               },
+  critical: { bg: COLORS.alert,             text: COLORS.onAlert, border: COLORS.alert            },
+  warning:  { bg: 'rgba(198,242,78,0.1)',  text: COLORS.warning, border: 'rgba(198,242,78,0.2)'  },
+  success:  { bg: 'rgba(47,111,90,0.1)',  text: COLORS.success, border: 'rgba(47,111,90,0.2)'  },
+  info:     { bg: 'rgba(47,111,90,0.1)',   text: COLORS.primary, border: 'rgba(47,111,90,0.2)'   },
+  gray:     { bg: COLORS.hoverBg,               text: COLORS.textSecondary, border: COLORS.border               },
 };
 
 const LABELS = {
@@ -43,5 +43,5 @@ const styles = StyleSheet.create({
     borderWidth:       1,
   },
   icon: { fontSize: 11 },
-  text: { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
+  text: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
 });

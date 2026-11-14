@@ -14,13 +14,13 @@ const T = ROLE.passenger;
 
 const TYPE_CONFIG = {
   overload: { icon: '👥', label: 'Passenger Overloading', color: COLORS.danger,  bg: COLORS.dangerLight },
-  thermal:  { icon: '🌡', label: 'Elevated Temperature',  color: COLORS.warning, bg: '#fef3c7' },
+  thermal:  { icon: '🌡', label: 'Elevated Temperature',  color: COLORS.warning, bg: COLORS.warningBg },
   other:    { icon: '⚠',  label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
 };
 
 const STATUS_CONFIG = {
   open:   { color: T.primary, bg: T.primaryLight, label: 'OPEN' },
-  closed: { color: '#16a34a', bg: '#dcfce7',      label: 'RESOLVED' },
+  closed: { color: COLORS.success, bg: COLORS.successBg,      label: 'RESOLVED' },
 };
 
 export default function MyReportsScreen() {
@@ -92,7 +92,7 @@ export default function MyReportsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
 
       <View style={styles.header}>
         <Logo size="header" style={{ marginBottom: 10 }} />
@@ -108,7 +108,7 @@ export default function MyReportsScreen() {
         {[
           { value: complaints.length, label: 'Total',    color: COLORS.textPrimary },
           { value: openCount,         label: 'Open',     color: T.primary },
-          { value: closedCount,       label: 'Resolved', color: '#22c55e' },
+          { value: closedCount,       label: 'Resolved', color: COLORS.success },
         ].map(({ value, label, color }, i) => (
           <View key={label} style={[styles.statCard, i > 0 && styles.statCardBorder]}>
             <Text style={[styles.statValue, { color }]}>{value}</Text>
@@ -156,39 +156,39 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.pageBg },
 
   header: { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  passengerPill: { backgroundColor: 'rgba(37,99,235,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(37,99,235,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
-  passengerPillText: { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
-  title: { fontSize: 22, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
-  sub:   { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', marginTop: 3 },
+  passengerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
+  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
+  title: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
+  sub:   { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
 
   statRow:       { backgroundColor: COLORS.cardBg, flexDirection: 'row', borderTopWidth: 1, borderTopColor: COLORS.border, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   statCard:      { flex: 1, paddingVertical: 14, alignItems: 'center' },
   statCardBorder:{ borderLeftWidth: 1, borderLeftColor: COLORS.border },
-  statValue:     { fontSize: 24, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: COLORS.textPrimary },
-  statLabel:     { fontSize: 10, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
+  statValue:     { fontSize: 24, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary },
+  statLabel:     { fontSize: 10, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  loadingText: { marginTop: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600' },
+  loadingText: { marginTop: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   emptyIcon:   { fontSize: 52, marginBottom: 12 },
-  emptyTitle:  { fontSize: 18, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
+  emptyTitle:  { fontSize: 18, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
   emptySub:    { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20 },
 
   list:       { padding: 16 },
-  listHeader: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
 
   card:       { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   typeIcon:   { width: 46, height: 46, borderRadius: RADIUS.md, justifyContent: 'center', alignItems: 'center' },
-  typeName:   { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  serial:     { fontSize: 11, color: COLORS.textMuted, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '600', marginTop: 2 },
+  typeName:   { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  serial:     { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
   statusBadge:{ borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText: { fontSize: 10, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  statusText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   divider:    { height: 1, backgroundColor: COLORS.borderLight, marginBottom: 12 },
 
   infoGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   infoItem:  { width: '47%', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.sm, padding: 10, borderWidth: 1, borderColor: COLORS.border },
-  infoLabel: { fontSize: 9, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 3 },
-  infoValue: { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  infoLabel: { fontSize: 9, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 3 },
+  infoValue: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
 
   descBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10 },
   descText: { fontSize: 12, fontStyle: 'italic', lineHeight: 17 },

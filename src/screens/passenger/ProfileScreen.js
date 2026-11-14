@@ -75,7 +75,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -223,45 +223,45 @@ const styles = StyleSheet.create({
   header:     { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border, ...SHADOW.sm },
   avatarRow:  { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar:     { width: 58, height: 58, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5 },
-  avatarInitial: { fontSize: 26, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '900', color: T.primary },
-  name:       { fontSize: 18, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  username:   { fontSize: 12, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', marginTop: 2 },
+  avatarInitial: { fontSize: 26, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: T.primary },
+  name:       { fontSize: 18, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  username:   { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginTop: 2 },
   rolePill:   { flexDirection: 'row', alignSelf: 'flex-start', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, marginTop: 6 },
-  rolePillText: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700' },
+  rolePillText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
 
   card:         { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
-  sectionLabel: { fontSize: 11, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9, color: COLORS.textSecondary, marginBottom: 14 },
+  sectionLabel: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9, color: COLORS.textSecondary, marginBottom: 14 },
 
   infoGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   infoItem:  { width: '47%', borderRadius: RADIUS.sm, padding: 11, borderWidth: 1 },
-  infoLabel: { fontSize: 9, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 4 },
-  infoValue: { fontSize: 13, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  infoLabel: { fontSize: 9, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 4 },
+  infoValue: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
 
-  fieldLabel: { fontSize: 11, fontFamily: 'PlusJakartaSans_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, color: COLORS.textSecondary, marginBottom: 7 },
+  fieldLabel: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, color: COLORS.textSecondary, marginBottom: 7 },
   inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 12, height: 50 },
   inputIcon:  { fontSize: 16, marginRight: 8 },
-  input:      { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500' },
-  textInput:  { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 14, height: 50, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500' },
+  input:      { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  textInput:  { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 14, height: 50, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
 
   saveBtn:     { borderRadius: RADIUS.md, height: 48, justifyContent: 'center', alignItems: 'center', marginTop: 16 },
-  saveBtnText: { color: '#fff', fontSize: 15, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  saveBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   pwToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pwToggleIcon:{ fontSize: 13, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  pwToggleIcon:{ fontSize: 13, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   tutorialBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 60, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, borderWidth: 1.5, borderColor: COLORS.primary + '40', marginBottom: 12, ...SHADOW.card },
   tutorialIcon: { fontSize: 18, color: COLORS.primary, width: 24, textAlign: 'center' },
-  tutorialLabel:{ fontSize: 15, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.primary },
-  tutorialDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', marginTop: 1 },
+  tutorialLabel:{ fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  tutorialDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
 
   switchBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 60, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, borderWidth: 1.5, borderColor: COLORS.darkBorder, marginBottom: 12, ...SHADOW.card },
   switchIcon: { fontSize: 24 },
-  switchLabel:{ fontSize: 15, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  switchDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', marginTop: 1 },
+  switchLabel:{ fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  switchDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
 
   logoutBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 54, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, borderWidth: 1.5, borderColor: COLORS.dangerLight, marginBottom: 14 },
   logoutIcon: { fontSize: 18, color: COLORS.danger },
-  logoutText: { color: COLORS.danger, fontSize: 15, fontFamily: 'PlusJakartaSans_ExtraBold', fontWeight: '800' },
+  logoutText: { color: COLORS.danger, fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
-  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'PlusJakartaSans_Regular', fontWeight: '500', marginBottom: 8 },
+  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', marginBottom: 8 },
 });
