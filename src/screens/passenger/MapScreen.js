@@ -7,6 +7,7 @@ import LiveStamp from '../../components/LiveStamp';
 import ErrorBanner from '../../components/ErrorBanner';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
+import { GradientFill } from '../../components/Gradient';
 import { COLORS, ROLE, RADIUS , FONTS, IS_DARK, themed } from '../../theme';
 
 const T = ROLE.passenger;
@@ -43,19 +44,20 @@ export default function MapScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       {/* HEADER */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>PUV Live Map</Text>
-          <Text style={styles.sub}>Bugo–Igpit</Text>
-          <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} style={{ marginTop: 4 }} />
+        <GradientFill name="brand" glow />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Live map</Text>
+          <Text style={styles.sub}>Every jeep on the Bugo to Igpit route</Text>
+          <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} onDark style={{ marginTop: 6 }} />
         </View>
         <TouchableOpacity style={styles.reloadBtn} onPress={live.reload} disabled={live.busy} accessibilityLabel="Refresh map">
           {live.busy
-            ? <ActivityIndicator size="small" color={T.accent} />
-            : <Icon name="refresh" size={19} color={T.accent} />}
+            ? <ActivityIndicator size="small" color="#FFFFFF" />
+            : <Icon name="refresh" size={21} color="#FFFFFF" />}
         </TouchableOpacity>
       </View>
 
@@ -111,18 +113,18 @@ const styles = themed(() => ({
   mapArea: { flex: 1 },
   map:  { flex: 1 },
 
-  header:    { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  title:     { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary },
-  sub:       { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 1 },
-  reloadBtn: { width: 38, height: 38, borderRadius: RADIUS.sm, backgroundColor: COLORS.pageBg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
+  header:    { backgroundColor: COLORS.dark, overflow: 'hidden', paddingTop: 52, paddingBottom: 20, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, borderBottomLeftRadius: RADIUS.xl, borderBottomRightRadius: RADIUS.xl, zIndex: 2 },
+  title:     { fontSize: 26, lineHeight: 32, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.4 },
+  sub:       { fontSize: 14.5, color: 'rgba(255,255,255,0.82)', fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
+  reloadBtn: { width: 46, height: 46, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', justifyContent: 'center', alignItems: 'center' },
   reloadIcon:{ fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   legend:     { backgroundColor: COLORS.cardBg, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot:  { width: 10, height: 10, borderRadius: 5 },
-  legendText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
+  legendText: { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   alertBadge: { marginLeft: 'auto', backgroundColor: COLORS.alert, borderRadius: RADIUS.full, paddingHorizontal: 9, paddingVertical: 3 },
-  alertText:  { color: COLORS.onAlert, fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  alertText:  { color: COLORS.onAlert, fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: IS_DARK ? 'rgba(27,31,29,0.85)' : 'rgba(255,255,255,0.85)', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   bannerWrap:     { position: 'absolute', left: 12, right: 12, bottom: 16, zIndex: 11 },
@@ -130,10 +132,10 @@ const styles = themed(() => ({
 
   callout:        { width: 220, padding: 6 },
   calloutPlate:   { fontSize: 17, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
-  calloutCompany: { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
-  calloutLoc:     { fontSize: 12, color: COLORS.textSecondary, marginTop: 2, marginBottom: 8 },
+  calloutCompany: { fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
+  calloutLoc:     { fontSize: 13.5, color: COLORS.textSecondary, marginTop: 2, marginBottom: 8 },
   calloutStats:   { flexDirection: 'row', gap: 6, marginBottom: 8 },
   statChip:       { borderRadius: RADIUS.sm, paddingHorizontal: 8, paddingVertical: 4 },
-  statChipText:   { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
-  calloutCta:     { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, textAlign: 'right' },
+  statChipText:   { fontSize: 12.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
+  calloutCta:     { fontSize: 13.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, textAlign: 'right' },
 }));

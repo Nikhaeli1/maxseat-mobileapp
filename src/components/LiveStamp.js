@@ -43,5 +43,5 @@ export default function LiveStamp({ updatedAt, busy, error, onDark = false, styl
 const styles = themed(() => ({
   row:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot:  { width: 7, height: 7, borderRadius: 4 },
-  text: { fontSize: 11, color: COLORS.textSecondary, fontFamily: FONTS.semiBold, fontWeight: '600' },
+  text: { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: FONTS.semiBold, fontWeight: '600' },
 }));

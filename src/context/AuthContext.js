@@ -34,7 +34,13 @@ export const AuthProvider = ({ children }) => {
           AsyncStorage.getItem(LAST_ROLE_KEY),
         ]);
         if (token && userJson) {
-          setUser(JSON.parse(userJson));
+          // Stay signed in: the saved login is used until you sign out or it expires
+          const saved = JSON.parse(userJson);
+          if (saved.token) {               // older versions also saved the token here
+            delete saved.token;
+            AsyncStorage.setItem(USER_KEY, JSON.stringify(saved)).catch(() => {});
+          }
+          setUser(saved);
         } else if (lastRole) {
           setPendingRole(lastRole);
         }
@@ -57,7 +63,8 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.setItem(LAST_ROLE_KEY, role);
     AsyncStorage.setItem(LAST_USERNAME_KEY(role), username).catch(() => {});
 
-    const profile = { ...data, role };
+    const { token: _t, success: _s, ...details } = data;   // the token lives in encrypted storage only
+    const profile = { ...details, role };
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(profile));
     setUser(profile);
     setPendingRole(null);
@@ -73,7 +80,8 @@ export const AuthProvider = ({ children }) => {
     await saveToken(data.token);
     await AsyncStorage.setItem(LAST_ROLE_KEY, 'passenger');
     AsyncStorage.setItem(LAST_USERNAME_KEY('passenger'), username).catch(() => {});
-    const profile = { ...data, role: 'passenger' };
+    const { token: _t, ...details } = data;
+    const profile = { ...details, role: 'passenger' };
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(profile));
     setUser(profile);
     setPendingRole(null);

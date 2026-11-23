@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 // Server address (Vercel). To point the app somewhere else without editing code,
@@ -10,7 +11,40 @@ export const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://maxseat-fin
 // Without it, maps use free OpenStreetMap tiles.
 export const CARTO_KEY = (process.env.EXPO_PUBLIC_CARTO_KEY || '').trim();
 
-const TOKEN_KEY = '@maxseat_token';
+// The login token is kept in the phone's encrypted storage (Keychain / Keystore),
+// not in plain app storage. Older versions kept it in AsyncStorage; it is moved
+// over the first time it is read, so nobody gets signed out by the update.
+const TOKEN_KEY        = 'maxseat_token';     // encrypted storage
+const OLD_TOKEN_KEY    = '@maxseat_token';    // where older versions kept it
+let   memToken         = null;                // read storage once, not on every request
+let   secureOk         = null;
+
+async function canUseSecure() {
+  if (secureOk === null) {
+    try { secureOk = await SecureStore.isAvailableAsync(); } catch (_) { secureOk = false; }
+  }
+  return secureOk;
+}
+
+async function readToken() {
+  if (memToken) return memToken;
+  try {
+    if (await canUseSecure()) {
+      memToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      if (!memToken) {
+        const old = await AsyncStorage.getItem(OLD_TOKEN_KEY);
+        if (old) {
+          await SecureStore.setItemAsync(TOKEN_KEY, old);
+          await AsyncStorage.removeItem(OLD_TOKEN_KEY);
+          memToken = old;
+        }
+      }
+    } else {
+      memToken = await AsyncStorage.getItem(OLD_TOKEN_KEY);   // web preview has no encrypted storage
+    }
+  } catch (_) { memToken = null; }
+  return memToken;
+}
 
 // ─── AXIOS INSTANCE ───────────────────────────────────────────────────────────
 const api = axios.create({
@@ -20,7 +54,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem(TOKEN_KEY);
+  const token = await readToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -44,9 +78,17 @@ api.interceptors.response.use(
 );
 
 // ─── TOKEN HELPERS ────────────────────────────────────────────────────────────
-export const saveToken  = (token) => AsyncStorage.setItem(TOKEN_KEY, token);
-export const clearToken = ()      => AsyncStorage.removeItem(TOKEN_KEY);
-export const getToken   = ()      => AsyncStorage.getItem(TOKEN_KEY);
+export const saveToken = async (token) => {
+  memToken = token;
+  if (await canUseSecure()) await SecureStore.setItemAsync(TOKEN_KEY, token);
+  else await AsyncStorage.setItem(OLD_TOKEN_KEY, token);
+};
+export const clearToken = async () => {
+  memToken = null;
+  try { if (await canUseSecure()) await SecureStore.deleteItemAsync(TOKEN_KEY); } catch (_) {}
+  await AsyncStorage.removeItem(OLD_TOKEN_KEY).catch(() => {});
+};
+export const getToken = () => readToken();
 
 // ─── ENFORCER AUTH ────────────────────────────────────────────────────────────
 export const loginEnforcer = async (username, password) => {

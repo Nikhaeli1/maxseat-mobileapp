@@ -52,5 +52,5 @@ const styles = themed(() => ({
     borderLeftWidth: 4, borderLeftColor: COLORS.alert,
     ...SHADOW.button,
   },
-  text: { color: '#FFFFFF', fontSize: 13.5, lineHeight: 19, fontFamily: FONTS.semiBold, fontWeight: '600' },
+  text: { color: '#FFFFFF', fontSize: 15, lineHeight: 19, fontFamily: FONTS.semiBold, fontWeight: '600' },
 }));

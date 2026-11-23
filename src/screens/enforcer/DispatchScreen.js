@@ -17,6 +17,8 @@ import useLiveData from '../../hooks/useLiveData';
 import { useThemeMode } from '../../context/ThemeContext';
 import Logo from '../../components/Logo';
 import { useTutorial } from '../../context/TutorialContext';
+import { GradientFill } from '../../components/Gradient';
+import Icon from '../../components/Icon';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.enforcer;
@@ -133,47 +135,55 @@ export default function DispatchScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
-      {/* ── TOP BAR ─────────────────────────────────────────────────────── */}
+      {/* ── TOP BAR (gradient hero) ───────────────────────────────────── */}
       <View ref={topBarRef} style={styles.topBar}>
-        <View style={styles.topLeft}>
-          <Logo size="header" style={{ marginBottom: 10 }} />
-          <View style={styles.badgeRow}>
-            <View style={styles.enforcerPill}>
-              <Text style={styles.enforcerPillText}>ENFORCER</Text>
-            </View>
-            {criticalCount > 0 && (
-              <View style={styles.criticalBadge}>
-                <Text style={styles.criticalBadgeText}>{criticalCount} critical</Text>
-              </View>
-            )}
+        <GradientFill name="brand" glow />
+        <View style={styles.topRow}>
+          <Logo size="header" onDark />
+          <View ref={actionsRef} style={styles.topActions}>
+            {[
+              { icon: 'help-circle-outline', label: 'Tutorial', onPress: launchTutorial },
+              { icon: 'swap-horizontal', label: 'Passenger', onPress: handleSwitchRole },
+              { icon: dark ? 'sunny-outline' : 'moon-outline', label: dark ? 'Light' : 'Dark', onPress: toggleTheme },
+              { icon: 'log-out-outline', label: 'Log out', onPress: handleLogout, lime: true },
+            ].map((b) => (
+              <TouchableOpacity
+                key={b.label}
+                onPress={b.onPress}
+                style={[styles.iconBtn, b.lime && styles.logoutBtn]}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={b.label}
+              >
+                <Icon name={b.icon} size={19} color={b.lime ? COLORS.onAlert : '#FFFFFF'} />
+                <Text style={[styles.iconBtnText, b.lime && { color: COLORS.onAlert }]}>{b.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-          <Text style={styles.topTitle}>Dispatch Orders</Text>
-          <Text style={styles.topSub}>
-            {user?.full_name} · {user?.badge || user?.username}
-          </Text>
-          <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} style={{ marginTop: 6 }} />
         </View>
-        <View ref={actionsRef} style={styles.topActions}>
-          {orders.length > 0 && (
-            <View style={styles.countBadge}>
-              <Text style={styles.countText}>{orders.length}</Text>
+        <View style={styles.badgeRow}>
+          <View style={styles.enforcerPill}>
+            <Icon name="shield-checkmark" size={13} color="#FFFFFF" />
+            <Text style={styles.enforcerPillText}>Enforcer</Text>
+          </View>
+          {criticalCount > 0 && (
+            <View style={styles.criticalBadge}>
+              <Text style={styles.criticalBadgeText}>{criticalCount} critical</Text>
             </View>
           )}
-          <TouchableOpacity onPress={launchTutorial} style={styles.iconBtn}>
-            <Text style={styles.iconBtnText}>Tutorial</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSwitchRole} style={styles.iconBtn}>
-            <Text style={styles.iconBtnText}>Passenger</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleTheme} style={styles.iconBtn} accessibilityLabel={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
-            <Text style={styles.iconBtnText}>{dark ? 'Light' : 'Dark'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleLogout} style={[styles.iconBtn, styles.logoutBtn]}>
-            <Text style={[styles.iconBtnText, { color: COLORS.danger }]}>Log Out</Text>
-          </TouchableOpacity>
+          {orders.length > 0 && (
+            <View style={styles.countBadge}>
+              <Text style={styles.countText}>{orders.length} open</Text>
+            </View>
+          )}
         </View>
+        <Text style={styles.topTitle}>Dispatch orders</Text>
+        <Text style={styles.topSub}>
+          {user?.full_name} · {user?.badge || user?.username}
+        </Text>
+        <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} onDark style={{ marginTop: 6 }} />
       </View>
 
       {/* ── VIEW TOGGLE ─────────────────────────────────────────────────── */}
@@ -267,56 +277,53 @@ const styles = themed(() => ({
   root: { flex: 1, backgroundColor: COLORS.pageBg },
 
   topBar: {
-    backgroundColor:  COLORS.cardBg,
+    backgroundColor:  COLORS.dark,
+    overflow:         'hidden',
     paddingTop:       52,
-    paddingBottom:    18,
+    paddingBottom:    22,
     paddingHorizontal:20,
-    flexDirection:    'row',
-    justifyContent:   'space-between',
-    alignItems:       'flex-end',
-    borderBottomWidth:1,
-    borderBottomColor: COLORS.border,
-    ...SHADOW.sm,
+    borderBottomLeftRadius:  RADIUS.xl,
+    borderBottomRightRadius: RADIUS.xl,
   },
-  topLeft:    { flex: 1 },
-  badgeRow:   { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  enforcerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)' },
-  enforcerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, letterSpacing: 0.5 },
-  criticalBadge: { backgroundColor: 'rgba(198,242,78,0.08)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(198,242,78,0.2)' },
-  criticalBadgeText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 0.3 },
+  topRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  badgeRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  enforcerPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 5 },
+  enforcerPillText: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: '#FFFFFF' },
+  criticalBadge: { backgroundColor: COLORS.alert, borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 5 },
+  criticalBadgeText: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.onAlert },
 
-  topTitle:   { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
-  topSub:     { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
-  topActions: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: 130 },
-  countBadge: { backgroundColor: T.primary, borderRadius: RADIUS.sm, paddingHorizontal: 10, paddingVertical: 4 },
+  topTitle:   { fontSize: 26, lineHeight: 32, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.4 },
+  topSub:     { fontSize: 14.5, color: 'rgba(255,255,255,0.82)', fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  countBadge: { backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 5 },
   countText:  { color: '#fff', fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
-  iconBtn:     { paddingHorizontal: 10, height: 30, borderRadius: RADIUS.badge, backgroundColor: COLORS.pageBg, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
-  logoutBtn:   { backgroundColor: COLORS.dangerBg, borderColor: COLORS.dangerBorder },
-  iconBtnText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  iconBtn:     { width: 56, paddingVertical: 7, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.14)', justifyContent: 'center', alignItems: 'center', gap: 2 },
+  logoutBtn:   { backgroundColor: COLORS.alert },
+  iconBtnText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: '#FFFFFF' },
 
-  toggleRow:       { flexDirection: 'row', backgroundColor: COLORS.cardBg, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  toggleBtn:       { flex: 1, paddingVertical: 13, alignItems: 'center' },
-  toggleBtnActive: { borderBottomWidth: 3, borderBottomColor: T.primary },
-  toggleText:      { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted },
-  toggleTextActive:{ color: T.accent, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  toggleRow:       { flexDirection: 'row', backgroundColor: COLORS.cardBg, marginHorizontal: 16, marginTop: 14, marginBottom: 4, padding: 4, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.sm },
+  toggleBtn:       { flex: 1, paddingVertical: 11, alignItems: 'center', borderRadius: RADIUS.md - 4 },
+  toggleBtnActive: { backgroundColor: COLORS.primary },
+  toggleText:      { fontSize: 15.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted },
+  toggleTextActive:{ color: '#FFFFFF', fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   loadingText: { marginTop: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   emptyIcon:   { fontSize: 52, marginBottom: 12 },
   emptyTitle:  { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
-  emptySub:    { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 20 },
+  emptySub:    { fontSize: 15.5, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 20 },
   refreshBtn:  { borderRadius: RADIUS.md, paddingHorizontal: 24, paddingVertical: 10 },
-  refreshBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 14 },
+  refreshBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 15.5 },
 
   list:       { padding: 16 },
-  listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  listHeader: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 12 },
 
   map: { flex: 1 },
   hidden: { opacity: 0, zIndex: -1 },
   banner: { marginHorizontal: 16, marginTop: 12 },
   callout:         { width: 210, padding: 4 },
   calloutPlate:    { fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
-  calloutDetail:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
-  calloutViolation:{ fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.warning, marginTop: 4 },
-  calloutAction:   { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, marginTop: 6 },
+  calloutDetail:   { fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  calloutViolation:{ fontSize: 13.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.warning, marginTop: 4 },
+  calloutAction:   { fontSize: 13.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, marginTop: 6 },
 }));

@@ -93,7 +93,7 @@ const styles = themed(() => ({
   center: { alignItems: 'center' },
   badgeLetter: { fontSize: 44, lineHeight: 52, color: '#14211B', fontFamily: FONTS.extraBold, fontWeight: '800' },
   badge:  { width: 96, height: 96, borderRadius: 30, backgroundColor: LIME, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-  kicker: { color: 'rgba(255,255,255,0.75)', fontSize: 14, fontFamily: FONTS.semiBold, marginBottom: 2 },
+  kicker: { color: 'rgba(255,255,255,0.75)', fontSize: 15.5, fontFamily: FONTS.semiBold, marginBottom: 2 },
   title:  { color: '#FFFFFF', fontSize: 28, fontFamily: FONTS.extraBold },
   dots:   { flexDirection: 'row', alignItems: 'center', marginTop: 18, gap: 8 },
   dot:    { width: 10, height: 10, borderRadius: 5 },

@@ -15,11 +15,11 @@ const CONFIGS = byMode(() => ({
 const LABELS = {
   OVERLOAD:  { variant: 'critical', icon: 'alert-circle', text: 'OVERLOAD'  },
   THERMAL:   { variant: 'warning',  icon: 'thermometer',  text: 'THERMAL'   },
-  ticket:    { variant: 'critical', icon: 'document-text', text: 'TICKET'   },
-  warning:   { variant: 'warning',  icon: 'warning',      text: 'WARNING'   },
-  apprehend: { variant: 'info',     icon: 'car',          text: 'APPREHEND' },
-  PENDING:   { variant: 'warning',  icon: 'time',         text: 'PENDING'   },
-  RESOLVED:  { variant: 'success',  icon: 'checkmark',    text: 'RESOLVED'  },
+  ticket:    { variant: 'critical', icon: 'document-text', text: 'Ticket'   },
+  warning:   { variant: 'warning',  icon: 'warning',      text: 'Warning'   },
+  apprehend: { variant: 'info',     icon: 'car',          text: 'Apprehend' },
+  PENDING:   { variant: 'warning',  icon: 'time',         text: 'Pending'   },
+  RESOLVED:  { variant: 'success',  icon: 'checkmark',    text: 'Resolved'  },
 };
 
 export default function StatusBadge({ type, variant, label }) {
@@ -44,5 +44,5 @@ const styles = themed(() => ({
     borderWidth:       1,
   },
   icon: { marginRight: 4 },
-  text: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
+  text: { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
 }));

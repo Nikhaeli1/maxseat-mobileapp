@@ -5,7 +5,7 @@ import HomeScreen      from '../screens/passenger/HomeScreen';
 import MapScreen       from '../screens/passenger/MapScreen';
 import MyReportsScreen from '../screens/passenger/MyReportsScreen';
 import ProfileScreen   from '../screens/passenger/ProfileScreen';
-import { COLORS, ROLE , FONTS, themed } from '../theme';
+import { COLORS, ROLE , FONTS, IS_DARK, SHADOW, themed } from '../theme';
 import Icon from '../components/Icon';
 
 const Tab = createBottomTabNavigator();
@@ -13,14 +13,15 @@ const T   = ROLE.passenger;
 
 function TabIcon({ icon, focused, color }) {
   return (
-    <View style={[tabStyles.iconWrap, focused && { backgroundColor: 'rgba(198,242,78,0.16)' }]}>
-      <Icon name={focused ? icon : `${icon}-outline`} size={21} color={color} />
+    <View style={[tabStyles.iconWrap, focused && tabStyles.iconOn]}>
+      <Icon name={focused ? icon : `${icon}-outline`} size={22} color={color} />
     </View>
   );
 }
 
 const tabStyles = themed(() => ({
-  iconWrap: { width: 40, height: 28, justifyContent: 'center', alignItems: 'center', borderRadius: 10 },
+  iconWrap: { width: 52, height: 32, justifyContent: 'center', alignItems: 'center', borderRadius: 16 },
+  iconOn:   { backgroundColor: IS_DARK ? 'rgba(198,242,78,0.16)' : 'rgba(47,111,90,0.12)' },
 }));
 
 export default function PassengerTabs() {
@@ -28,18 +29,19 @@ export default function PassengerTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        // Clean light bar; the open tab gets a soft green pill
         tabBarStyle: {
-          backgroundColor:  COLORS.dark,
-          borderTopColor:   COLORS.darkMid,
+          backgroundColor:  COLORS.cardBg,
+          borderTopColor:   COLORS.border,
           borderTopWidth:   1,
-          height:           68,
-          paddingBottom:    10,
-          paddingTop:       6,
+          height:           76,
+          paddingBottom:    12,
+          paddingTop:       8,
+          ...SHADOW.md,
         },
-        // Lime + white on the green bar (green-on-green was hard to see)
-        tabBarActiveTintColor:   COLORS.alert,
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.7)',
-        tabBarLabelStyle:        { fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
+        tabBarActiveTintColor:   IS_DARK ? COLORS.alert : COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarLabelStyle:        { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
       }}
     >
       <Tab.Screen

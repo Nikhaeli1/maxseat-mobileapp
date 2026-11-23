@@ -8,6 +8,7 @@ import LeafletMap from '../../components/LeafletMap';
 import { submitInterception } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
 import Icon from '../../components/Icon';
+import { GradientFill } from '../../components/Gradient';
 import BusSeats from '../../components/BusSeats';
 import StatusBadge from '../../components/StatusBadge';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, byMode } from '../../theme';
@@ -85,6 +86,7 @@ export default function ActionScreen({ route, navigation }) {
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <View style={styles.header}>
+      <GradientFill name="brand" glow />
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityLabel="Back" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Icon name="chevron-back" size={22} color={COLORS.textOnDark} />
         </TouchableOpacity>
@@ -220,6 +222,7 @@ export default function ActionScreen({ route, navigation }) {
           disabled={!action || submitting}
           activeOpacity={0.85}
         >
+            {!!action && <GradientFill name="button" />}
           {submitting
             ? <ActivityIndicator color="#fff" />
             : <Text style={styles.submitText}>Submit Interception Report</Text>
@@ -236,46 +239,46 @@ const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { padding: 16 },
 
-  header:       { backgroundColor: COLORS.dark, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn:      { width: 38, height: 38, borderRadius: RADIUS.sm, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+  header:       { backgroundColor: COLORS.dark, overflow: 'hidden', borderBottomLeftRadius: RADIUS.xl, borderBottomRightRadius: RADIUS.xl, paddingTop: 52, paddingBottom: 24, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  backBtn:      { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.16)', justifyContent: 'center', alignItems: 'center' },
   backIcon:     { fontSize: 20, color: COLORS.textOnDark },
   headerCenter: { flex: 1 },
   headerPlate:  { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textOnDark },
-  headerSub:    { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
+  headerSub:    { fontSize: 13.5, color: 'rgba(255,255,255,0.8)', fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
   badgeStack:   { gap: 4 },
 
   criticalStrip:     { backgroundColor: COLORS.alert, paddingVertical: 8, paddingHorizontal: 16 },
-  criticalStripText: { color: COLORS.onAlert, fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5, textAlign: 'center' },
+  criticalStripText: { color: COLORS.onAlert, fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5, textAlign: 'center' },
 
   card:         { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
-  sectionLabel: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9, color: COLORS.textSecondary, marginBottom: 12 },
-  sectionHint:  { fontSize: 12, color: COLORS.textMuted, marginBottom: 12, marginTop: -6 },
+  sectionLabel: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 12 },
+  sectionHint:  { fontSize: 13.5, color: COLORS.textMuted, marginBottom: 12, marginTop: -6 },
   divider:      { height: 1, backgroundColor: COLORS.borderLight, marginVertical: 14 },
 
   mapCard:      { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, overflow: 'hidden', marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   mapLabelRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12 },
-  mapLocText:   { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary, flex: 1, textAlign: 'right' },
+  mapLocText:   { fontSize: 13.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary, flex: 1, textAlign: 'right' },
   map:          { height: 180 },
 
   infoGrid:       { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   infoItem:       { width: '47%', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.sm, padding: 11, borderWidth: 1, borderColor: COLORS.border },
   infoItemAlert:  { borderColor: COLORS.danger + '55', backgroundColor: COLORS.dangerLight },
-  infoLabel:      { fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 4 },
-  infoValue:      { fontSize: 14, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  infoLabel:      { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textMuted, marginBottom: 4 },
+  infoValue:      { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
 
   violationRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: COLORS.pageBg, borderRadius: RADIUS.sm, padding: 10, marginBottom: 8, borderLeftWidth: 3 },
-  violationDetail:{ flex: 1, fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', lineHeight: 17 },
+  violationDetail:{ flex: 1, fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', lineHeight: 17 },
 
   actionOption:   { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, marginBottom: 10, backgroundColor: COLORS.pageBg },
   actionIcon:     { width: 24, textAlign: 'center' },
-  actionLabel:    { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
-  actionDesc:     { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  actionLabel:    { fontSize: 15.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
+  actionDesc:     { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   radio:          { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
   radioDot:       { width: 11, height: 11, borderRadius: 6 },
 
-  counter:      { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', textAlign: 'right', marginTop: 6 },
-  notesInput:   { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 14, fontSize: 14, color: COLORS.textPrimary, backgroundColor: COLORS.pageBg, minHeight: 110, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  counter:      { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', textAlign: 'right', marginTop: 6 },
+  notesInput:   { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 14, fontSize: 15.5, color: COLORS.textPrimary, backgroundColor: COLORS.pageBg, minHeight: 110, fontFamily: 'Outfit_Regular', fontWeight: '500' },
 
-  submitBtn:    { borderRadius: RADIUS.lg, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
+  submitBtn:    { borderRadius: RADIUS.lg, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary , overflow: 'hidden' },
   submitText:   { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 }));

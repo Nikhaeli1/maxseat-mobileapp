@@ -8,6 +8,7 @@ import { submitComplaint } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
 import { showToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
+import { GradientFill } from '../../components/Gradient';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, IS_DARK } from '../../theme';
 
 const T = ROLE.passenger;
@@ -76,12 +77,13 @@ export default function ComplaintScreen({ route, navigation }) {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       <View style={styles.header}>
+      <GradientFill name="brand" glow />
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityLabel="Back" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Icon name="chevron-back" size={22} color={COLORS.textOnDark} />
         </TouchableOpacity>
         <View>
           <Text style={styles.headerTitle}>Report Violation</Text>
-          <Text style={[styles.headerSub, { color: T.primaryMid }]}>{plate}</Text>
+          <Text style={styles.headerSub}>{plate}</Text>
         </View>
       </View>
 
@@ -166,6 +168,7 @@ export default function ComplaintScreen({ route, navigation }) {
           disabled={!type || submitting}
           activeOpacity={0.85}
         >
+            {!!type && <GradientFill name="button" />}
           {submitting
             ? <ActivityIndicator color="#fff" />
             : <Text style={styles.submitText}>Submit Report</Text>
@@ -182,41 +185,41 @@ const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { padding: 16 },
 
-  header:      { backgroundColor: COLORS.dark, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 3, borderBottomColor: T.primary },
-  backBtn:     { width: 38, height: 38, borderRadius: RADIUS.sm, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+  header:      { backgroundColor: COLORS.dark, overflow: 'hidden', borderBottomLeftRadius: RADIUS.xl, borderBottomRightRadius: RADIUS.xl, paddingTop: 52, paddingBottom: 24, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12},
+  backBtn:     { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.16)', justifyContent: 'center', alignItems: 'center' },
   backIcon:    { fontSize: 20, color: COLORS.textOnDark },
   headerTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textOnDark },
-  headerSub:   { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
+  headerSub:   { fontSize: 13.5, color: 'rgba(255,255,255,0.8)', fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
 
   puvSummary:   { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1.5, ...SHADOW.card },
-  summaryLabel: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  summaryLabel: { fontSize: 12.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginBottom: 4 },
   summaryPlate: { fontSize: 24, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary },
-  summarySub:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2, marginBottom: 10 },
+  summarySub:   { fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2, marginBottom: 10 },
   summaryChips: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   chip:         { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: COLORS.border },
   chipHot:      { backgroundColor: COLORS.warningBg, borderColor: COLORS.warning + '55' },
   chipDanger:   { backgroundColor: COLORS.dangerLight, borderColor: COLORS.danger + '55' },
-  chipText:     { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  chipText:     { fontSize: 12.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
 
   card:         { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
-  sectionLabel: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 12 },
-  sectionHint:  { fontSize: 12, color: COLORS.textMuted, marginBottom: 12, marginTop: -6 },
+  sectionLabel: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', marginBottom: 12 },
+  sectionHint:  { fontSize: 13.5, color: COLORS.textMuted, marginBottom: 12, marginTop: -6 },
 
   option:             { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, marginBottom: 10, backgroundColor: COLORS.pageBg },
   optionIcon:         { width: 24, textAlign: 'center' },
-  optionLabel:        { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
-  optionDesc:         { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  optionLabel:        { fontSize: 15.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
+  optionDesc:         { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   radio:              { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
   radioDot:           { width: 11, height: 11, borderRadius: 6 },
 
-  counter:      { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', textAlign: 'right', marginTop: 6 },
+  counter:      { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', textAlign: 'right', marginTop: 6 },
   matchTag:     { alignSelf: 'flex-start', marginTop: 6, backgroundColor: COLORS.alert, borderRadius: RADIUS.badge, paddingHorizontal: 8, paddingVertical: 2 },
-  matchTagText: { fontSize: 10, color: COLORS.onAlert, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
-  textArea:     { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 14, fontSize: 14, color: COLORS.textPrimary, backgroundColor: COLORS.pageBg, minHeight: 110, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  matchTagText: { fontSize: 12, color: COLORS.onAlert, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  textArea:     { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 14, fontSize: 15.5, color: COLORS.textPrimary, backgroundColor: COLORS.pageBg, minHeight: 110, fontFamily: 'Outfit_Regular', fontWeight: '500' },
 
   disclaimer:     { borderRadius: RADIUS.md, padding: 14, marginBottom: 16, borderWidth: 1 },
-  disclaimerText: { fontSize: 12, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18 },
+  disclaimerText: { fontSize: 13.5, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18 },
 
-  submitBtn:  { borderRadius: RADIUS.lg, height: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
+  submitBtn:  { borderRadius: RADIUS.lg, height: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary , overflow: 'hidden' },
   submitText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 }));

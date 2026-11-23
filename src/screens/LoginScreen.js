@@ -7,8 +7,11 @@ import {
 import { useAuth, getLastUsername } from '../context/AuthContext';
 import { friendlyError } from '../api/errors';
 import { useThemeMode } from '../context/ThemeContext';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, TYPE, themed } from '../theme';
 import Logo from '../components/Logo';
+import Icon from '../components/Icon';
+import { Field, Button } from '../components/ui';
+import { GradientFill } from '../components/Gradient';
 
 export default function LoginScreen({ navigation }) {
   const { login, pendingRole, roleSwitch } = useAuth();
@@ -121,6 +124,8 @@ export default function LoginScreen({ navigation }) {
       const status = err?.response?.status;
       setError(status === 401
         ? 'Wrong username or password. Check them and try again.'
+        : status === 429
+        ? 'Too many wrong passwords. Please wait 15 minutes and try again.'
         : friendlyError(err, 'Sign-in failed. Please try again.'));
     } finally {
       setLoading(false);
@@ -134,9 +139,8 @@ export default function LoginScreen({ navigation }) {
     >
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={theme.gradFrom} />
 
-      {/* Role-tinted gradient background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.gradFrom }]} />
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.gradTo, opacity: 0.55 }]} />
+      {/* Soft gradient background with color spots */}
+      <GradientFill name="page" glow="light" start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} />
 
       {/* Light / dark switch */}
       <TouchableOpacity
@@ -146,7 +150,8 @@ export default function LoginScreen({ navigation }) {
         accessibilityRole="button"
         accessibilityLabel={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       >
-        <Text style={styles.themeBtnText}>{dark ? 'Light mode' : 'Dark mode'}</Text>
+        <Icon name={dark ? 'sunny-outline' : 'moon-outline'} size={16} color={COLORS.textSecondary} />
+        <Text style={styles.themeBtnText}>{dark ? 'Light' : 'Dark'}</Text>
       </TouchableOpacity>
 
       <ScrollView
@@ -156,7 +161,7 @@ export default function LoginScreen({ navigation }) {
       >
         {/* ── LOGO (fades in first) ──────────────────────────────────────── */}
         <Animated.View style={[styles.logoSection, { opacity: logoAnim }]}>
-          <Logo size="full" style={styles.logoImage} />
+          <Logo size="full" onDark={dark} style={styles.logoImage} />
         </Animated.View>
 
         {/* ── GLASS CARD (slides up after logo) ─────────────────────────── */}
@@ -174,7 +179,9 @@ export default function LoginScreen({ navigation }) {
                   width: segW,
                   transform: [{ translateX: pillX.interpolate({ inputRange: [0, 1], outputRange: [0, segW + 4] }) }],
                 }]}
-              />
+              >
+                <GradientFill name="button" />
+              </Animated.View>
             )}
             {ROLES.map((r) => {
               const t      = ROLE[r];
@@ -188,6 +195,7 @@ export default function LoginScreen({ navigation }) {
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
                 >
+                  <Icon name={r === 'passenger' ? 'people-outline' : 'shield-checkmark-outline'} size={18} color={active ? '#fff' : COLORS.textSecondary} />
                   <Text style={[styles.roleBtnLabel, active && styles.roleBtnLabelActive]}>{t.label}</Text>
                 </TouchableOpacity>
               );
@@ -198,61 +206,44 @@ export default function LoginScreen({ navigation }) {
           <View style={styles.titleRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>
-                {role === 'passenger' ? 'Passenger sign in' : 'Enforcer sign in'}
+                {role === 'passenger' ? 'Welcome back' : 'Enforcer sign in'}
               </Text>
               <Text style={styles.cardSub}>
-                {role === 'passenger' ? 'See live seats before you board' : 'Dispatch and respond to violations'}
+                {role === 'passenger' ? 'Sign in to see free seats before you ride.' : 'Sign in to see and respond to violations.'}
               </Text>
             </View>
           </View>
 
           {/* USERNAME */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>
-              {role === 'enforcer' ? 'Username / Badge ID' : 'Username'}
-            </Text>
-            <View style={[styles.inputWrap, username && { borderColor: COLORS.primary }]}>
-              <TextInput
-                style={styles.input}
-                placeholder={role === 'enforcer' ? 'e.g. PNP-Police' : 'Enter your username'}
-                placeholderTextColor={COLORS.textMuted}
-                value={username}
-                onChangeText={(t) => { setUsername(t); if (error) setError(''); }}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="username"
-                textContentType="username"
-                returnKeyType="next"
-                blurOnSubmit={false}
-                onSubmitEditing={() => passwordRef.current?.focus()}
-              />
-            </View>
-          </View>
+          <Field
+            label={role === 'enforcer' ? 'Username or badge ID' : 'Username'}
+            icon={role === 'enforcer' ? 'id-card-outline' : 'person-outline'}
+            placeholder={role === 'enforcer' ? 'e.g. PNP-Police' : 'Enter your username'}
+            value={username}
+            onChangeText={(t) => { setUsername(t); if (error) setError(''); }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="username"
+            textContentType="username"
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => passwordRef.current?.focus()}
+          />
 
-          {/* PASSWORD */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Password</Text>
-            <View style={[styles.inputWrap, password && { borderColor: COLORS.primary }]}>
-              <TextInput
-                ref={passwordRef}
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Enter your password"
-                placeholderTextColor={COLORS.textMuted}
-                value={password}
-                onChangeText={(t) => { setPassword(t); if (error) setError(''); }}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password"
-                textContentType="password"
-                secureTextEntry={!showPwd}
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-              />
-              <TouchableOpacity onPress={() => setShowPwd(p => !p)} style={styles.peekBtn}>
-                <Text style={styles.peekText}>{showPwd ? 'Hide' : 'Show'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* PASSWORD (eye button shows or hides it) */}
+          <Field
+            ref={passwordRef}
+            label="Password"
+            icon="lock-closed-outline"
+            secure
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={(t) => { setPassword(t); if (error) setError(''); }}
+            autoComplete="password"
+            textContentType="password"
+            returnKeyType="done"
+            onSubmitEditing={handleLogin}
+          />
 
           {!!error && (
             <View style={styles.errorBox}>
@@ -261,19 +252,13 @@ export default function LoginScreen({ navigation }) {
           )}
 
           {/* SUBMIT */}
-          <TouchableOpacity
-            style={[styles.submitBtn, loading && { opacity: 0.6 }]}
+          <Button
+            label={role === 'enforcer' ? 'Log in to Dispatch' : 'Sign in'}
+            icon="arrow-forward"
             onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.submitBtnText}>
-                  {role === 'enforcer' ? 'Log In to Dispatch' : 'Sign In'}
-                </Text>
-            }
-          </TouchableOpacity>
+            loading={loading}
+            style={{ marginTop: 6 }}
+          />
           </Animated.View>
 
         </Animated.View>
@@ -281,9 +266,9 @@ export default function LoginScreen({ navigation }) {
         {/* ── REGISTER LINK (passenger only) ────────────────────────────── */}
         {role === 'passenger' && (
           <Animated.View style={[styles.registerRow, { opacity: cardAnim }]}>
-            <Text style={styles.registerText}>Don't have an account? </Text>
+            <Text style={styles.registerText}>New to MaxSeat? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')} activeOpacity={0.75}>
-              <Text style={styles.registerLink}>Register</Text>
+              <Text style={styles.registerLink}>Create an account</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -299,15 +284,15 @@ const styles = themed(() => ({
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 48 },
 
   // LOGO
-  logoSection: { alignItems: 'center', marginBottom: 28 },
+  logoSection: { alignItems: 'center', marginBottom: 30 },
   logoImage:   { marginBottom: 10 },
-  appTagline:  { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
+  appTagline:  { fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
 
   // GLASS CARD
   card: {
     backgroundColor: COLORS.cardBg,
     borderRadius:    RADIUS.xl,
-    padding:         24,
+    padding:         26,
     marginBottom:    20,
     borderWidth:     1,
     borderColor:     COLORS.border,
@@ -317,12 +302,12 @@ const styles = themed(() => ({
   // ROLE TOGGLE
   roleToggleWrap: {
     flexDirection:   'row',
-    borderRadius:    RADIUS.sm,
+    borderRadius:    RADIUS.md,
     borderWidth:     1,
     borderColor:     COLORS.border,
     backgroundColor: COLORS.pageBg,
     padding:         4,
-    marginBottom:    22,
+    marginBottom:    24,
     gap:             4,
   },
   roleBtn: {
@@ -330,27 +315,29 @@ const styles = themed(() => ({
     flexDirection:    'row',
     alignItems:       'center',
     justifyContent:   'center',
-    paddingVertical:  11,
-    borderRadius:     RADIUS.sm - 2,
+    gap:              8,
+    paddingVertical:  13,
+    borderRadius:     RADIUS.md - 4,
   },
   rolePill: {
     position: 'absolute', top: 4, bottom: 4, left: 4,
-    borderRadius: RADIUS.sm - 2,
+    borderRadius: RADIUS.md - 4,
     backgroundColor: COLORS.primary,
+    overflow: 'hidden',
     ...SHADOW.sm,
   },
-  titleRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
+  titleRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 22 },
   roleBadge:     { width: 48, height: 48, borderRadius: 15, backgroundColor: '#C6F24E', alignItems: 'center', justifyContent: 'center' },
-  roleBtnLabel:       { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  roleBtnLabel:       { fontSize: 16, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
   roleBtnLabelActive: { color: '#fff' },
 
-  cardTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 2 },
-  cardSub:   { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18 },
+  cardTitle: { ...TYPE.title, color: COLORS.textPrimary, marginBottom: 4 },
+  cardSub:   { ...TYPE.body, color: COLORS.textSecondary },
 
   // FIELDS
   fieldGroup: { marginBottom: 16 },
   fieldLabel: {
-    fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase',
+    fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', 
     letterSpacing: 0.9, color: COLORS.textSecondary, marginBottom: 7,
   },
   inputWrap: {
@@ -358,15 +345,15 @@ const styles = themed(() => ({
     borderWidth: 1.5, borderRadius: RADIUS.md, borderColor: COLORS.border,
     backgroundColor: COLORS.inputBg, paddingHorizontal: 14, height: 52,
   },
-  input:    { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  input:    { flex: 1, fontSize: 15.5, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   peekBtn:  { paddingHorizontal: 6, paddingVertical: 4 },
-  peekText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
+  peekText: { fontSize: 13.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
 
-  themeBtn:     { position: 'absolute', top: 48, right: 16, zIndex: 5, paddingHorizontal: 12, height: 30, borderRadius: RADIUS.full, justifyContent: 'center', backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.border },
-  themeBtnText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  themeBtn:     { position: 'absolute', top: 48, right: 16, zIndex: 5, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, height: 38, borderRadius: RADIUS.full, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.sm },
+  themeBtnText: { fontSize: 15.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
 
-  errorBox:  { backgroundColor: COLORS.dangerBg, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: COLORS.dangerBorder, padding: 12, marginBottom: 12 },
-  errorText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textPrimary, lineHeight: 18 },
+  errorBox:  { backgroundColor: COLORS.dangerBg, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.dangerBorder, padding: 14, marginBottom: 14 },
+  errorText: { fontSize: 14.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textPrimary, lineHeight: 20 },
 
   // SUBMIT
   submitBtn: {
@@ -379,14 +366,14 @@ const styles = themed(() => ({
     ...SHADOW.button,
     shadowColor:     '#000',
   },
-  submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
+  submitBtnText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
 
-  registerRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16, marginBottom: 4 },
-  registerText: { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
-  registerLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent },
+  registerRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 18, marginBottom: 4 },
+  registerText: { fontSize: 15.5, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
+  registerLink: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent, paddingVertical: 6 },
 
   footer: {
     textAlign: 'center', color: COLORS.textMuted,
-    fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18, marginTop: 12,
+    fontSize: 12.5, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18, marginTop: 12,
   },
 }));

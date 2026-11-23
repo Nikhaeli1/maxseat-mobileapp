@@ -20,7 +20,7 @@ export default function ErrorBanner({ error, onRetry, busy, style }) {
 
 const styles = themed(() => ({
   box:     { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.dangerBg, borderColor: COLORS.dangerBorder, borderWidth: 1, borderRadius: RADIUS.md, paddingVertical: 10, paddingHorizontal: 12 },
-  text:    { flex: 1, fontSize: 12.5, lineHeight: 17, color: COLORS.textPrimary, fontFamily: FONTS.semiBold, fontWeight: '600' },
+  text:    { flex: 1, fontSize: 14, lineHeight: 17, color: COLORS.textPrimary, fontFamily: FONTS.semiBold, fontWeight: '600' },
   btn:     { backgroundColor: COLORS.primary, borderRadius: RADIUS.sm, paddingHorizontal: 12, paddingVertical: 7 },
-  btnText: { color: '#fff', fontSize: 12, fontFamily: FONTS.extraBold, fontWeight: '800' },
+  btnText: { color: '#fff', fontSize: 13.5, fontFamily: FONTS.extraBold, fontWeight: '800' },
 }));

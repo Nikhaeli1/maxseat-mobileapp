@@ -20,6 +20,7 @@ import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK, themed } from '../theme';
 import BusSeats from '../components/BusSeats';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
+import { GradientFill } from '../components/Gradient';
 
 const W = Dimensions.get('window').width;
 const LIME = '#C6F24E';
@@ -435,6 +436,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
+      <GradientFill name="page" glow="light" start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} />
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.pageBg} />
 
       <View style={styles.topBar}>
@@ -487,54 +489,54 @@ const ui = themed(() => ({
     width: W - 48, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, padding: 16,
     borderWidth: IS_DARK ? 1 : 0, borderColor: COLORS.border, ...SHADOW.md,
   },
-  route:      { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
+  route:      { fontSize: 14.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
   featureRow: { flexDirection: 'row', gap: 10 },
   feature:    { alignItems: 'center', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, paddingVertical: 12, width: (W - 48 - 32 - 20) / 3 },
   featureIcon:{ marginBottom: 6 },
-  featureTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  featureTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
-  kicker:  { fontSize: 11, fontFamily: FONTS.extraBold, letterSpacing: 1, color: COLORS.textSecondary },
+  kicker:  { fontSize: 12.5, fontFamily: FONTS.extraBold, letterSpacing: 1, color: COLORS.textSecondary },
   rowTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   plate:   { fontSize: 16, fontFamily: FONTS.extraBold, color: COLORS.textPrimary },
-  muted:   { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textSecondary },
-  small:   { fontSize: 11.5, fontFamily: FONTS.regular, color: COLORS.textSecondary },
+  muted:   { fontSize: 13.5, fontFamily: FONTS.regular, color: COLORS.textSecondary },
+  small:   { fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textSecondary },
 
   chip:    { borderWidth: 1.5, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
-  chipTxt: { fontSize: 11, fontFamily: FONTS.extraBold },
+  chipTxt: { fontSize: 12.5, fontFamily: FONTS.extraBold },
 
   puvRow:  { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8 },
   barBg:   { height: 7, borderRadius: 4, backgroundColor: COLORS.border, overflow: 'hidden', marginTop: 10, marginBottom: 5 },
   barFill: { height: 7, borderRadius: 4 },
 
   etaPill: { backgroundColor: LIME, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  etaTxt:  { fontSize: 13, fontFamily: FONTS.extraBold, color: INK_ON_LIME },
+  etaTxt:  { fontSize: 14.5, fontFamily: FONTS.extraBold, color: INK_ON_LIME },
   mapBox:  { height: 34, justifyContent: 'center', marginHorizontal: 4 },
   routeLine: { position: 'absolute', left: 0, right: 0, height: 5, borderRadius: 3, backgroundColor: COLORS.primary },
   stop:    { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.cardBg, borderWidth: 3, borderColor: COLORS.primary },
   me:      { position: 'absolute', width: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.primary, borderWidth: 4, borderColor: COLORS.cardBg },
   busPin:  { position: 'absolute', left: 4, backgroundColor: COLORS.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 2, borderColor: LIME },
-  busPinTxt: { fontSize: 11, fontFamily: FONTS.extraBold, color: '#FFFFFF' },
+  busPinTxt: { fontSize: 12.5, fontFamily: FONTS.extraBold, color: '#FFFFFF' },
 
   option:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, padding: 10, marginBottom: 7 },
   optionOn:  { borderColor: LIME, backgroundColor: IS_DARK ? 'rgba(198,242,78,0.10)' : 'rgba(198,242,78,0.16)' },
   radio:     { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
   radioOn:   { borderColor: COLORS.primary },
   radioDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
-  optionTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  optionTxt: { fontSize: 15, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
   cta:       { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, height: 42, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  ctaTxt:    { color: '#FFFFFF', fontSize: 14, fontFamily: FONTS.extraBold },
+  ctaTxt:    { color: '#FFFFFF', fontSize: 15.5, fontFamily: FONTS.extraBold },
 
   avatar:    { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
   menuRow:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: COLORS.borderLight },
   menuIcon:  { width: 22, textAlign: 'center' },
-  menuTxt:   { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  menuTxt:   { fontSize: 15, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
   order:     { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8, borderWidth: 1.5, borderColor: COLORS.pageBg },
   critBadge: { backgroundColor: LIME, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
-  critTxt:   { fontSize: 10, fontFamily: FONTS.extraBold, letterSpacing: 0.8, color: INK_ON_LIME },
+  critTxt:   { fontSize: 12, fontFamily: FONTS.extraBold, letterSpacing: 0.8, color: INK_ON_LIME },
   logged:    { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 },
-  loggedTxt: { color: '#FFFFFF', fontSize: 12.5, fontFamily: FONTS.extraBold },
+  loggedTxt: { color: '#FFFFFF', fontSize: 14, fontFamily: FONTS.extraBold },
 
   pinWrap:   { position: 'absolute', width: 18, height: 18, marginLeft: -9, alignItems: 'center', justifyContent: 'center' },
   pin:       { width: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.primary, borderWidth: 3, borderColor: COLORS.cardBg },
@@ -547,8 +549,8 @@ const styles = themed(() => ({
   root:      { flex: 1, backgroundColor: COLORS.pageBg },
   topBar:    { paddingTop: 52, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   rolePill:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
-  rolePillTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
-  skip:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
+  rolePillTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  skip:      { fontSize: 15.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
 
   sceneArea: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
   textArea:  { paddingHorizontal: 28, paddingTop: 12 },
@@ -559,7 +561,7 @@ const styles = themed(() => ({
   dots:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot:       { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.border },
   dotOn:     { width: 22, backgroundColor: COLORS.primary },
-  back:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
+  back:      { fontSize: 15.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
   nextBtn:   { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 26, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button },
-  nextTxt:   { color: '#FFFFFF', fontSize: 15, fontFamily: FONTS.extraBold },
+  nextTxt:   { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
 }));

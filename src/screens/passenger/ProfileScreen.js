@@ -12,6 +12,8 @@ import { useThemeMode } from '../../context/ThemeContext';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
+import { Field } from '../../components/ui';
+import Gradient, { GradientFill } from '../../components/Gradient';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.passenger;
@@ -93,22 +95,24 @@ export default function ProfileScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
-      {/* HEADER */}
+      {/* HEADER (gradient hero) */}
       <View style={styles.header}>
-        <Logo size="header" style={{ marginBottom: 12 }} />
+        <GradientFill name="brand" glow />
+        <Logo size="header" onDark style={{ marginBottom: 18 }} />
         <View style={styles.avatarRow}>
-          <View style={[styles.avatar, { backgroundColor: T.primary + '22', borderColor: T.primary + '55' }]}>
+          <Gradient name="lime" style={styles.avatar}>
             <Text style={styles.avatarInitial}>
               {(user?.full_name || user?.username || '?')[0].toUpperCase()}
             </Text>
-          </View>
+          </Gradient>
           <View style={{ flex: 1 }}>
             <Text style={styles.name}>{user?.full_name}</Text>
-            <Text style={[styles.username, { color: T.accent }]}>@{user?.username}</Text>
-            <View style={[styles.rolePill, { backgroundColor: T.primary + '15', borderColor: T.primary + '40' }]}>
-              <Text style={[styles.rolePillText, { color: T.accent }]}>Passenger · Bugo–Igpit</Text>
+            <Text style={styles.username}>@{user?.username}</Text>
+            <View style={styles.rolePill}>
+              <Icon name="bus" size={13} color="#FFFFFF" />
+              <Text style={styles.rolePillText}>Passenger · Bugo to Igpit</Text>
             </View>
           </View>
         </View>
@@ -118,7 +122,7 @@ export default function ProfileScreen() {
 
         {/* ACCOUNT INFO */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Account Info</Text>
+          <Text style={styles.sectionLabel}>Account info</Text>
           <View style={styles.infoGrid}>
             {[
               ['Full Name', user?.full_name || '—'],
@@ -136,8 +140,8 @@ export default function ProfileScreen() {
 
         {/* EDIT PROFILE */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Edit Profile</Text>
-          <Text style={styles.fieldLabel}>Mobile Number</Text>
+          <Text style={styles.sectionLabel}>Edit profile</Text>
+          <Text style={styles.fieldLabel}>Mobile number</Text>
           <View style={styles.inputWrap}>
             <Icon name="call-outline" size={17} color={COLORS.textMuted} style={styles.inputIcon} />
             <TextInput
@@ -157,9 +161,10 @@ export default function ProfileScreen() {
             onPress={handleSave}
             disabled={saving || !mobileChanged}
           >
+            <GradientFill name="button" />
             {saving
               ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.saveBtnText}>{mobileChanged ? 'Save Changes' : 'No changes'}</Text>
+              : <Text style={styles.saveBtnText}>{mobileChanged ? 'Save changes' : 'No changes'}</Text>
             }
           </TouchableOpacity>
         </View>
@@ -167,29 +172,25 @@ export default function ProfileScreen() {
         {/* CHANGE PASSWORD */}
         <View style={styles.card}>
           <TouchableOpacity style={styles.pwToggleRow} onPress={() => setShowPwForm(v => !v)}>
-            <Text style={styles.sectionLabel}>Change Password</Text>
+            <Text style={styles.sectionLabel}>Change password</Text>
             <Icon name={showPwForm ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.textSecondary} />
           </TouchableOpacity>
           {showPwForm && (
             <View style={{ marginTop: 12 }}>
               {[
-                { label: 'Current Password', value: currentPw, setter: setCurrentPw },
-                { label: 'New Password',     value: newPw,     setter: setNewPw     },
-                { label: 'Confirm New',      value: confirmPw, setter: setConfirmPw },
+                { label: 'Current password',     value: currentPw, setter: setCurrentPw },
+                { label: 'New password',         value: newPw,     setter: setNewPw     },
+                { label: 'Confirm new password', value: confirmPw, setter: setConfirmPw },
               ].map(({ label, value, setter }) => (
-                <View key={label} style={{ marginBottom: 12 }}>
-                  <Text style={styles.fieldLabel}>{label}</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={value}
-                    onChangeText={setter}
-                    secureTextEntry
-                    placeholder="••••••••"
-                    placeholderTextColor={COLORS.textMuted}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                </View>
+                <Field
+                  key={label}
+                  label={label}
+                  icon="lock-closed-outline"
+                  secure
+                  value={value}
+                  onChangeText={setter}
+                  placeholder="Type your password"
+                />
               ))}
               {confirmPw.length > 0 && (
                 <Text style={[styles.pwHint, newPw === confirmPw && newPw.length >= 6 && { color: COLORS.accent }]}>
@@ -203,9 +204,10 @@ export default function ProfileScreen() {
                 onPress={handleChangePassword}
                 disabled={pwSaving}
               >
+                <GradientFill name="button" />
                 {pwSaving
                   ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={styles.saveBtnText}>Update Password</Text>
+                  : <Text style={styles.saveBtnText}>Update password</Text>
                 }
               </TouchableOpacity>
             </View>
@@ -275,55 +277,55 @@ const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { padding: 16 },
 
-  header:     { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border, ...SHADOW.sm },
-  avatarRow:  { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar:     { width: 58, height: 58, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5 },
-  avatarInitial: { fontSize: 26, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: T.accent },
-  name:       { fontSize: 18, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  username:   { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginTop: 2 },
-  rolePill:   { flexDirection: 'row', alignSelf: 'flex-start', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, marginTop: 6 },
-  rolePillText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
+  header:     { backgroundColor: COLORS.dark, overflow: 'hidden', paddingTop: 52, paddingBottom: 26, paddingHorizontal: 20, borderBottomLeftRadius: RADIUS.xl, borderBottomRightRadius: RADIUS.xl },
+  avatarRow:  { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  avatar:     { width: 68, height: 68, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  avatarInitial: { fontSize: 30, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.onAlert },
+  name:       { fontSize: 22, lineHeight: 28, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: '#FFFFFF' },
+  username:   { fontSize: 14.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginTop: 1, color: 'rgba(255,255,255,0.8)' },
+  rolePill:   { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 5, marginTop: 8, backgroundColor: 'rgba(255,255,255,0.16)' },
+  rolePillText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: '#FFFFFF' },
 
   card:         { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
-  sectionLabel: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9, color: COLORS.textSecondary, marginBottom: 14 },
+  sectionLabel: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 14 },
 
   infoGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   infoItem:  { width: '47%', borderRadius: RADIUS.sm, padding: 11, borderWidth: 1 },
-  infoLabel: { fontSize: 9, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 4 },
-  infoValue: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  infoLabel: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textMuted, marginBottom: 4 },
+  infoValue: { fontSize: 14.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
 
-  fieldLabel: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, color: COLORS.textSecondary, marginBottom: 7 },
+  fieldLabel: { fontSize: 12.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, marginBottom: 7 },
   inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 12, height: 50 },
   inputIcon:  { marginRight: 8 },
-  input:      { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
-  textInput:  { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 14, height: 50, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  input:      { flex: 1, fontSize: 15.5, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
+  textInput:  { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 14, height: 50, fontSize: 15.5, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
 
-  saveBtn:     { borderRadius: RADIUS.md, height: 48, justifyContent: 'center', alignItems: 'center', marginTop: 16 },
-  saveBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  saveBtn:     { borderRadius: RADIUS.md, height: 54, justifyContent: 'center', alignItems: 'center', marginTop: 16, overflow: 'hidden' },
+  saveBtnText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
-  pwHint:      { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: -4 },
+  pwHint:      { fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: -4 },
   pwToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pwToggleIcon:{ fontSize: 13, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  pwToggleIcon:{ fontSize: 14.5, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   segment:      { flexDirection: 'row', backgroundColor: COLORS.inputBg, borderRadius: RADIUS.md, padding: 4, gap: 4, borderWidth: 1, borderColor: COLORS.border },
   segBtn:       { flex: 1, height: 40, borderRadius: RADIUS.sm, justifyContent: 'center', alignItems: 'center' },
   segBtnOn:     { backgroundColor: COLORS.primary },
-  segText:      { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  segText:      { fontSize: 15.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
   segTextOn:    { color: '#FFFFFF' },
-  segHint:      { fontSize: 12, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 10 },
+  segHint:      { fontSize: 13.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 10 },
   tutorialBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 60, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, borderWidth: 1.5, borderColor: COLORS.primary + '40', marginBottom: 12, ...SHADOW.card },
   tutorialIcon: { fontSize: 18, color: COLORS.accent, width: 24, textAlign: 'center' },
-  tutorialLabel:{ fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent },
-  tutorialDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
+  tutorialLabel:{ fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent },
+  tutorialDesc: { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
 
   switchBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 60, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, borderWidth: 1.5, borderColor: COLORS.darkBorder, marginBottom: 12, ...SHADOW.card },
   switchIcon: { fontSize: 24 },
-  switchLabel:{ fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  switchDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
+  switchLabel:{ fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  switchDesc: { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
 
   logoutBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 54, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, borderWidth: 1.5, borderColor: COLORS.dangerLight, marginBottom: 14 },
   logoutIcon: { fontSize: 18, color: COLORS.danger },
-  logoutText: { color: COLORS.danger, fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  logoutText: { color: COLORS.danger, fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
-  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', marginBottom: 8 },
+  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 12.5, fontFamily: 'Outfit_Regular', fontWeight: '500', marginBottom: 8 },
 }));

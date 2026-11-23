@@ -8,14 +8,15 @@ import { Image, StyleSheet, View } from 'react-native';
  * size="full"    – login screen hero (default, ~140 wide)
  * size="header"  – compact header strip (~90 wide)
  * size="small"   – inline / tab bar  (~60 wide)
+ * onDark         – all-white logo for green / gradient headers
  */
-export default function Logo({ size = 'full', style }) {
+export default function Logo({ size = 'full', style, onDark = false }) {
   const dims = SIZES[size] || SIZES.full;
   return (
     <View style={[{ width: dims.width, height: dims.height }, style]}>
       <Image
         source={require('../../assets/logo.png')}
-        style={styles.img}
+        style={[styles.img, onDark && { tintColor: '#FFFFFF' }]}
         resizeMode="contain"
       />
     </View>

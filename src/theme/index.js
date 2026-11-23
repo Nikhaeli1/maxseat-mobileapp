@@ -25,18 +25,18 @@ const LIGHT = {
   darkMid:       '#245847',
   darkBorder:    '#3A5248',
 
-  pageBg:        '#EEF5F1',
-  hoverBg:       '#F5F9F7',
+  pageBg:        '#F1F6F3',
+  hoverBg:       '#F6FAF8',
   cardBg:        '#FFFFFF',
-  inputBg:       '#F5F9F7',
+  inputBg:       '#F6FAF8',
 
   textPrimary:   '#14211B',
-  textSecondary: '#5E6F67',
-  textMuted:     '#8C9A93',
+  textSecondary: '#55665E',
+  textMuted:     '#7F8E87',
   textOnDark:    '#FFFFFF',
 
-  border:        '#DCE8E1',
-  borderLight:   '#EEF5F1',
+  border:        '#E2EBE6',
+  borderLight:   '#EEF4F0',
 
   // Lime = "look here". Fill with dark text on top.
   alert:         '#C6F24E',
@@ -70,18 +70,18 @@ const DARK = {
   darkMid:       '#262B28',
   darkBorder:    '#343A36',
 
-  pageBg:        '#1B1F1D',
-  hoverBg:       '#2E3430',
-  cardBg:        '#262B28',
-  inputBg:       '#2E3430',
+  pageBg:        '#161A18',
+  hoverBg:       '#2A302C',
+  cardBg:        '#212623',
+  inputBg:       '#2A302C',
 
   textPrimary:   '#FFFFFF',
-  textSecondary: '#9BA8A1',
-  textMuted:     '#7D8A83',
+  textSecondary: '#AAB6AF',
+  textMuted:     '#86938C',
   textOnDark:    '#FFFFFF',
 
-  border:        '#343A36',
-  borderLight:   '#2E3430',
+  border:        '#323935',
+  borderLight:   '#2A302C',
 
   alert:         '#C6F24E',
   onAlert:       '#14211B',
@@ -106,6 +106,8 @@ const DARK = {
 export const COLORS = {};
 export const ROLE   = { passenger: {}, enforcer: {} };
 export const SHADOW = {};
+// Gradient color pairs, used with <Gradient name="brand" /> (components/Gradient.js)
+export const GRADIENT = {};
 
 function build() {
   Object.assign(COLORS, IS_DARK ? DARK : LIGHT);
@@ -139,12 +141,25 @@ function build() {
     badgeColor: COLORS.danger,
   });
 
+  // Soft, wide shadows: cards look like they float a little off the page
   Object.assign(SHADOW, {
-    sm:     { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: IS_DARK ? 0.3 : 0.06, shadowRadius: 3  },
-    md:     { elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: IS_DARK ? 0.35 : 0.08, shadowRadius: 6  },
-    button: { elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: IS_DARK ? 0.4 : 0.12, shadowRadius: 8  },
+    sm:     { elevation: 2, shadowColor: '#14211B', shadowOffset: { width: 0, height: 3 }, shadowOpacity: IS_DARK ? 0.35 : 0.06, shadowRadius: 10 },
+    md:     { elevation: 5, shadowColor: '#14211B', shadowOffset: { width: 0, height: 8 }, shadowOpacity: IS_DARK ? 0.4 : 0.09, shadowRadius: 20 },
+    button: { elevation: 3, shadowColor: IS_DARK ? '#000' : '#2F6F5A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: IS_DARK ? 0.4 : 0.22, shadowRadius: 12 },
   });
   SHADOW.card   = SHADOW.sm;
+
+  Object.assign(GRADIENT, {
+    // Deep forest green, light at the top left and darker at the bottom right
+    brand:  IS_DARK ? ['#2D604E', '#152C24'] : ['#3F8D70', '#1C4A3B'],
+    button: IS_DARK ? ['#45937A', '#2B6653'] : ['#3F8D70', '#245847'],
+    // Lime, for "look here" buttons and badges
+    lime:   ['#E1FC84', '#B6E23A'],
+    // Soft page wash behind the sign-in screens
+    page:   IS_DARK ? ['#1C2320', '#121513'] : ['#F7FCF9', '#DFEDE5'],
+    // Very light mint for highlighted cards
+    mint:   IS_DARK ? ['rgba(198,242,78,0.12)', 'rgba(198,242,78,0.03)'] : ['#EFF9E1', '#FFFFFF'],
+  });
   SHADOW.header = SHADOW.md;
 }
 build();
@@ -201,11 +216,11 @@ export function themed(factory) {
 }
 
 export const RADIUS = {
-  sm:    10,
+  sm:    12,
   md:    16,
-  lg:    24,
-  xl:    32,
-  badge: 7,
+  lg:    22,
+  xl:    28,
+  badge: 8,
   full:  999,
 };
 
@@ -214,6 +229,20 @@ export const FONTS = {
   regular:   'Outfit_Regular',
   semiBold:  'Outfit_SemiBold',
   extraBold: 'Outfit_ExtraBold',
+};
+
+// Text sizes, large enough to read at a glance for all ages. Spread into styles:
+//   title: { ...TYPE.title, color: COLORS.textPrimary }
+const t = (fontSize, lineHeight, fontFamily, fontWeight, extra) => ({ fontSize, lineHeight, fontFamily, fontWeight, ...extra });
+export const TYPE = {
+  display: t(32, 38, FONTS.extraBold, '800', { letterSpacing: -0.6 }),
+  title:   t(26, 32, FONTS.extraBold, '800', { letterSpacing: -0.4 }),
+  heading: t(20, 26, FONTS.extraBold, '800', { letterSpacing: -0.2 }),
+  section: t(17, 22, FONTS.extraBold, '800'),
+  body:    t(16, 23, FONTS.regular,   '500'),
+  strong:  t(16, 22, FONTS.semiBold,  '700'),
+  label:   t(14, 19, FONTS.semiBold,  '600'),
+  caption: t(13, 18, FONTS.regular,   '500'),
 };
 
 // (Aliases SHADOW.card/header and COLORS.*Light are set in build() above.)
