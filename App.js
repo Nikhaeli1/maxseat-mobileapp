@@ -2,13 +2,14 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Animated } from 'react-native';
 import RoleSwitchOverlay from './src/components/RoleSwitchOverlay';
 import { ToastHost } from './src/components/Toast';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Font from 'expo-font';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { TutorialProvider } from './src/context/TutorialContext';
-import { COLORS, ROLE } from './src/theme';
+import { ThemeProvider, useThemeMode, loadSavedTheme } from './src/context/ThemeContext';
+import { COLORS, ROLE, IS_DARK, themed } from './src/theme';
 
 // ── Shared ────────────────────────────────────────────────────────────────────
 import LoginScreen       from './src/screens/LoginScreen';
@@ -26,6 +27,10 @@ import ActionScreen   from './src/screens/enforcer/ActionScreen';
 
 const Stack = createNativeStackNavigator();
 
+// Where you were in the app. Kept so that switching light/dark mode (which
+// redraws every screen) puts you back on the same screen.
+let savedNavState;
+
 function RootNavigator() {
   const { user, loading, showOnboarding } = useAuth();
 
@@ -42,8 +47,21 @@ function RootNavigator() {
     );
   }
 
+  const navTheme = {
+    ...(IS_DARK ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(IS_DARK ? DarkTheme : DefaultTheme).colors,
+      primary: COLORS.primary, background: COLORS.pageBg, card: COLORS.cardBg,
+      text: COLORS.textPrimary, border: COLORS.border,
+    },
+  };
+
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      theme={navTheme}
+      initialState={savedNavState}
+      onStateChange={(state) => { savedNavState = state; }}
+    >
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
@@ -112,43 +130,55 @@ function RoleSwitchHost() {
   return <RoleSwitchOverlay active={!!roleSwitch} from={last.current.from} to={last.current.to} />;
 }
 
-export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  useEffect(() => {
-    Font.loadAsync({
-      Outfit_Regular:   require('./assets/fonts/Outfit_400Regular.ttf'),
-      Outfit_SemiBold:  require('./assets/fonts/Outfit_600SemiBold.ttf'),
-      Outfit_ExtraBold: require('./assets/fonts/Outfit_800ExtraBold.ttf'),
-    })
-      .then(() => setFontsLoaded(true))
-      .catch(() => setFontsLoaded(true));  // fall back to system font if anything fails
-  }, []);
-
-  // Same color as the launch screen, so there's no white flash while fonts load
-  if (!fontsLoaded) return <View style={styles.splash} />;
-
+// Everything that has to be redrawn when light/dark mode changes. The `key`
+// makes React rebuild it with the new colors; sign-in state lives above it.
+function ThemedShell() {
+  const { version } = useThemeMode();
   return (
-    <AuthProvider>
-      <View style={{ flex: 1 }}>
-        {/* TutorialProvider sits ABOVE the navigator so coach marks can cover
-            the tab bar while staying in the same window as the elements they
-            measure — both are required for the highlights to line up. */}
-        <TutorialProvider>
-          <RootNavigator />
-        </TutorialProvider>
-        <RoleSwitchHost />
-        <ToastHost />
-      </View>
-    </AuthProvider>
+    <View key={version} style={{ flex: 1, backgroundColor: COLORS.pageBg }}>
+      {/* TutorialProvider sits ABOVE the navigator so coach marks can cover
+          the tab bar while staying in the same window as the elements they
+          measure — both are required for the highlights to line up. */}
+      <TutorialProvider>
+        <RootNavigator />
+      </TutorialProvider>
+      <RoleSwitchHost />
+      <ToastHost />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+export default function App() {
+  const [ready, setReady] = useState(false);
+  const [initialMode, setInitialMode] = useState('light');
+
+  useEffect(() => {
+    const fonts = Font.loadAsync({
+      Outfit_Regular:   require('./assets/fonts/Outfit_400Regular.ttf'),
+      Outfit_SemiBold:  require('./assets/fonts/Outfit_600SemiBold.ttf'),
+      Outfit_ExtraBold: require('./assets/fonts/Outfit_800ExtraBold.ttf'),
+    }).catch(() => {});                    // fall back to system font if anything fails
+    const theme = loadSavedTheme().then(setInitialMode).catch(() => {});
+    Promise.all([fonts, theme]).then(() => setReady(true));
+  }, []);
+
+  // Same color as the launch screen, so there's no white flash while loading
+  if (!ready) return <View style={styles.splash} />;
+
+  return (
+    <ThemeProvider initialMode={initialMode}>
+      <AuthProvider>
+        <ThemedShell />
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
+const styles = themed(() => ({
   splash: {
     flex:            1,
     backgroundColor: COLORS.dark,
     justifyContent:  'center',
     alignItems:      'center',
   },
-});
+}));

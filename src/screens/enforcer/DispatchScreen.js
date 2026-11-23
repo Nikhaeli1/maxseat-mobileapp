@@ -14,9 +14,10 @@ import SkeletonList from '../../components/Skeleton';
 import ErrorBanner from '../../components/ErrorBanner';
 import LiveStamp from '../../components/LiveStamp';
 import useLiveData from '../../hooks/useLiveData';
+import { useThemeMode } from '../../context/ThemeContext';
 import Logo from '../../components/Logo';
 import { useTutorial } from '../../context/TutorialContext';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.enforcer;
 const { height: H } = Dimensions.get('window');
@@ -25,6 +26,7 @@ const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_enforcer_v2';
 export default function DispatchScreen({ navigation }) {
   const { user, logout, switchRole } = useAuth();
   const { startTutorial, stopTutorial } = useTutorial();
+  const { dark, toggle: toggleTheme } = useThemeMode();
   const [view,       setView]        = useState('list');
   const [mapOpened,  setMapOpened]   = useState(false);   // keep the map alive once opened
   useEffect(() => { if (view === 'map') setMapOpened(true); }, [view]);
@@ -165,6 +167,9 @@ export default function DispatchScreen({ navigation }) {
           <TouchableOpacity onPress={handleSwitchRole} style={styles.iconBtn}>
             <Text style={styles.iconBtnText}>Passenger</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={toggleTheme} style={styles.iconBtn} accessibilityLabel={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <Text style={styles.iconBtnText}>{dark ? 'Light' : 'Dark'}</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={[styles.iconBtn, styles.logoutBtn]}>
             <Text style={[styles.iconBtnText, { color: COLORS.danger }]}>Log Out</Text>
           </TouchableOpacity>
@@ -258,7 +263,7 @@ export default function DispatchScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root: { flex: 1, backgroundColor: COLORS.pageBg },
 
   topBar: {
@@ -276,7 +281,7 @@ const styles = StyleSheet.create({
   topLeft:    { flex: 1 },
   badgeRow:   { flexDirection: 'row', gap: 8, marginBottom: 8 },
   enforcerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)' },
-  enforcerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
+  enforcerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, letterSpacing: 0.5 },
   criticalBadge: { backgroundColor: 'rgba(198,242,78,0.08)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(198,242,78,0.2)' },
   criticalBadgeText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.danger, letterSpacing: 0.3 },
 
@@ -293,7 +298,7 @@ const styles = StyleSheet.create({
   toggleBtn:       { flex: 1, paddingVertical: 13, alignItems: 'center' },
   toggleBtnActive: { borderBottomWidth: 3, borderBottomColor: T.primary },
   toggleText:      { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted },
-  toggleTextActive:{ color: T.primary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  toggleTextActive:{ color: T.accent, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   loadingText: { marginTop: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
@@ -313,5 +318,5 @@ const styles = StyleSheet.create({
   calloutPlate:    { fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
   calloutDetail:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   calloutViolation:{ fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.warning, marginTop: 4 },
-  calloutAction:   { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, marginTop: 6 },
-});
+  calloutAction:   { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, marginTop: 6 },
+}));

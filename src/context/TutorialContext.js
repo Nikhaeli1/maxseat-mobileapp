@@ -22,6 +22,7 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { themed } from '../theme';
 import { View, StyleSheet } from 'react-native';
 import TutorialOverlay from '../components/TutorialOverlay';
 import { useAuth } from './AuthContext';
@@ -79,6 +80,6 @@ export function TutorialProvider({ children }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root: { flex: 1 },
-});
+}));

@@ -5,7 +5,7 @@ import HomeScreen      from '../screens/passenger/HomeScreen';
 import MapScreen       from '../screens/passenger/MapScreen';
 import MyReportsScreen from '../screens/passenger/MyReportsScreen';
 import ProfileScreen   from '../screens/passenger/ProfileScreen';
-import { COLORS, ROLE , FONTS} from '../theme';
+import { COLORS, ROLE , FONTS, themed } from '../theme';
 import Icon from '../components/Icon';
 
 const Tab = createBottomTabNavigator();
@@ -19,9 +19,9 @@ function TabIcon({ icon, focused, color }) {
   );
 }
 
-const tabStyles = StyleSheet.create({
+const tabStyles = themed(() => ({
   iconWrap: { width: 40, height: 28, justifyContent: 'center', alignItems: 'center', borderRadius: 10 },
-});
+}));
 
 export default function PassengerTabs() {
   return (

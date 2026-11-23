@@ -10,7 +10,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LiveStamp from '../../components/LiveStamp';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.passenger;
 const show = (v) => (v == null || v === '' ? '—' : String(v));
@@ -63,7 +63,7 @@ export default function PuvDetailScreen({ route, navigation }) {
           ) : live.error ? (
             <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} style={{ alignSelf: 'stretch' }} />
           ) : (
-            <Text style={[styles.splashText, { color: T.primary }]}>Loading {plate}…</Text>
+            <Text style={[styles.splashText, { color: T.accent }]}>Loading {plate}…</Text>
           )}
         </View>
       </View>
@@ -89,7 +89,7 @@ export default function PuvDetailScreen({ route, navigation }) {
         {/* CAPACITY */}
         <View style={[styles.card, { padding: 0, overflow: 'hidden' }]}>
           <View style={[styles.cardLabel, { backgroundColor: T.primaryLight }]}>
-            <Text style={[styles.sectionLabel, { color: T.primary }]}>Passenger Load</Text>
+            <Text style={[styles.sectionLabel, { color: T.accent }]}>Passenger Load</Text>
           </View>
           <View style={{ padding: 18 }}>
             <CapacityMeter passengers={puv.passengers} capacity={puv.capacity} loadPct={puv.load_pct} />
@@ -155,7 +155,7 @@ export default function PuvDetailScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   splash: { flex: 1, backgroundColor: COLORS.pageBg, justifyContent: 'center', alignItems: 'center', padding: 24 },
   splashTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
   headerText:  { flex: 1 },
   headerPlate: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textOnDark },
   headerSub:   { fontSize: 12, color: T.primaryMid, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
-  criticalPill:{ backgroundColor: 'rgba(198,242,78,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(198,242,78,0.4)' },
-  criticalText:{ fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.danger },
+  criticalPill:{ backgroundColor: COLORS.alert, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  criticalText:{ fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.onAlert },
 
   card:         { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   cardLabel:    { paddingHorizontal: 18, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
@@ -189,4 +189,4 @@ const styles = StyleSheet.create({
 
   reportBtn:  { borderRadius: RADIUS.lg, height: 56, flexDirection: 'row', gap: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
   reportText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
-});
+}));

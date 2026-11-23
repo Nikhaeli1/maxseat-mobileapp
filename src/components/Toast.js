@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Text, StyleSheet } from 'react-native';
-import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK } from '../theme';
+import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK, themed } from '../theme';
 
 // A short message that slides up from the bottom and goes away on its own.
 //   import { showToast } from '../components/Toast';
@@ -44,7 +44,7 @@ export function ToastHost() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   wrap: {
     position: 'absolute', left: 20, right: 20, bottom: 96,
     backgroundColor: IS_DARK ? '#2E3430' : '#14211B',
@@ -53,4 +53,4 @@ const styles = StyleSheet.create({
     ...SHADOW.button,
   },
   text: { color: '#FFFFFF', fontSize: 13.5, lineHeight: 19, fontFamily: FONTS.semiBold, fontWeight: '600' },
-});
+}));

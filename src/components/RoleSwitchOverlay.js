@@ -12,7 +12,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-native';
-import { FONTS } from '../theme';
+import { FONTS, themed } from '../theme';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const D = Math.ceil(Math.hypot(SW, SH) * 1.1);   // circle big enough to cover any corner
@@ -87,7 +87,7 @@ export default function RoleSwitchOverlay({ active, from, to }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { ...StyleSheet.absoluteFillObject, zIndex: 10000, elevation: 10000, alignItems: 'center', justifyContent: 'center' },
   circle: { position: 'absolute', width: D, height: D, borderRadius: D / 2, backgroundColor: GREEN, left: (SW - D) / 2, top: (SH - D) / 2 },
   center: { alignItems: 'center' },
@@ -98,4 +98,4 @@ const styles = StyleSheet.create({
   dots:   { flexDirection: 'row', alignItems: 'center', marginTop: 18, gap: 8 },
   dot:    { width: 10, height: 10, borderRadius: 5 },
   bar:    { width: 36, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' },
-});
+}));

@@ -1,4 +1,5 @@
 import React from 'react';
+import { themed } from '../theme';
 import { Image, StyleSheet, View } from 'react-native';
 
 /**
@@ -28,6 +29,6 @@ const SIZES = {
   small:  { width: 68,  height: 26 },
 };
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   img: { width: '100%', height: '100%' },
-});
+}));

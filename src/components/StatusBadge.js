@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, RADIUS, FONTS } from '../theme';
+import { COLORS, RADIUS, FONTS, themed, byMode } from '../theme';
 import Icon from './Icon';
 
 // Colors match web badge system exactly
-const CONFIGS = {
+const CONFIGS = byMode(() => ({
   critical: { bg: COLORS.alert,             text: COLORS.onAlert, border: COLORS.alert            },
   warning:  { bg: 'rgba(198,242,78,0.1)',  text: COLORS.warning, border: 'rgba(198,242,78,0.2)'  },
   success:  { bg: 'rgba(47,111,90,0.1)',  text: COLORS.success, border: 'rgba(47,111,90,0.2)'  },
   info:     { bg: 'rgba(47,111,90,0.1)',   text: COLORS.primary, border: 'rgba(47,111,90,0.2)'   },
   gray:     { bg: COLORS.hoverBg,               text: COLORS.textSecondary, border: COLORS.border               },
-};
+}));
 
 const LABELS = {
   OVERLOAD:  { variant: 'critical', icon: 'alert-circle', text: 'OVERLOAD'  },
@@ -23,7 +23,7 @@ const LABELS = {
 };
 
 export default function StatusBadge({ type, variant, label }) {
-  const cfg    = LABELS[type] || { variant: variant || 'gray', icon: '', text: type };
+  const cfg    = LABELS[type] || LABELS[String(type || '').toUpperCase()] || { variant: variant || 'gray', icon: '', text: type };
   const colors = CONFIGS[variant || cfg.variant] || CONFIGS.gray;
   return (
     <View style={[styles.badge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
@@ -33,7 +33,7 @@ export default function StatusBadge({ type, variant, label }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   badge: {
     flexDirection:     'row',
     alignItems:        'center',
@@ -45,4 +45,4 @@ const styles = StyleSheet.create({
   },
   icon: { marginRight: 4 },
   text: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.4 },
-});
+}));

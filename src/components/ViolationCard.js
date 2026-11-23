@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import StatusBadge from './StatusBadge';
 import Icon from './Icon';
-import { COLORS, SHADOW, RADIUS , FONTS} from '../theme';
+import { COLORS, SHADOW, RADIUS , FONTS, themed, IS_DARK } from '../theme';
 
 export default function ViolationCard({ order, onPress }) {
   const isCritical = order.violations.some(v => v.severity === 'critical');
@@ -71,7 +71,7 @@ export default function ViolationCard({ order, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   card: {
     backgroundColor: COLORS.cardBg,
     borderRadius:    RADIUS.lg,
@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
   respondRow:          { marginTop: 12 },
   respondBtn:          { borderRadius: RADIUS.badge, paddingVertical: 10, alignItems: 'center' },
   respondBtnCritical:  { backgroundColor: 'rgba(198,242,78,0.1)', borderWidth: 1, borderColor: 'rgba(198,242,78,0.3)' },
-  respondBtnNormal:    { backgroundColor: COLORS.pageBg, borderWidth: 1, borderColor: COLORS.border },
+  respondBtnNormal:    { backgroundColor: IS_DARK ? COLORS.hoverBg : COLORS.pageBg, borderWidth: 1, borderColor: COLORS.border },
   respondText:         { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   respondTextCritical: { color: COLORS.danger },
-  respondTextNormal:   { color: COLORS.textSecondary },
-});
+  respondTextNormal:   { color: IS_DARK ? COLORS.textPrimary : COLORS.textSecondary },
+}));

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, IS_DARK, FONTS } from '../theme';
+import { COLORS, IS_DARK, FONTS, themed, byMode } from '../theme';
 
 // Live cabin view: a top-down PUV (front at the top), seats in rows of 2 + aisle + 2.
 // Taken seat  = green seat with a white person.
@@ -12,9 +12,9 @@ const COLS = [24, 53, 113, 142];     // seat x positions (aisle sits between 77 
 const Y0 = 66;                       // first passenger row
 const PITCH = 30;                    // row spacing
 
-const C = IS_DARK
+const C = byMode(() => (IS_DARK
   ? { body: '#1B1F1D', frame: '#9BA8A1', glass: '#343A36', aisle: '#202522', empty: '#343A36', emptyBack: '#3D4540', seat: '#3E8A70', seatBack: '#245847' }
-  : { body: '#FFFFFF', frame: '#5E6F67', glass: '#DCE8E1', aisle: '#EEF5F1', empty: '#DCE8E1', emptyBack: '#C3D6CC', seat: '#2F6F5A', seatBack: '#245847' };
+  : { body: '#FFFFFF', frame: '#5E6F67', glass: '#DCE8E1', aisle: '#EEF5F1', empty: '#DCE8E1', emptyBack: '#C3D6CC', seat: '#2F6F5A', seatBack: '#245847' }));
 
 function Person({ color, big }) {
   const head = big ? 9 : 8;
@@ -113,11 +113,11 @@ export default function BusSeats({ passengers = 0, capacity = 20, scale = 1, sho
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   abs:      { position: 'absolute' },
   seat:     { position: 'absolute', width: 24, height: 25, borderTopLeftRadius: 5, borderTopRightRadius: 5, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, borderBottomWidth: 5, alignItems: 'center', paddingTop: 2 },
   stander:  { width: 18, height: 20, alignItems: 'center', justifyContent: 'center' },
   caption:  { alignItems: 'center', marginTop: 8 },
   headline: { fontSize: 15, fontFamily: FONTS.extraBold, color: COLORS.textPrimary },
   sub:      { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 1 },
-});
+}));

@@ -17,7 +17,7 @@ import LiveStamp from '../../components/LiveStamp';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
 import { useTutorial } from '../../context/TutorialContext';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.passenger;
 const { width: W, height: H } = Dimensions.get('window');
@@ -192,8 +192,8 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.viewMoreRow}>
-          <Text style={[styles.viewMore, { color: T.primary }]}>View details</Text>
-          <Icon name="chevron-forward" size={15} color={T.primary} />
+          <Text style={[styles.viewMore, { color: T.accent }]}>View details</Text>
+          <Icon name="chevron-forward" size={15} color={T.accent} />
         </View>
       </PressableScale>
     );
@@ -328,13 +328,13 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root: { flex: 1, backgroundColor: COLORS.pageBg },
 
   topBar:    { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', borderBottomWidth: 1, borderBottomColor: COLORS.border, ...SHADOW.sm },
   topLeft:   {},
   passengerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
-  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
+  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, letterSpacing: 0.5 },
   topTitle:  { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
   topSub:    { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
   countBadge:{ borderRadius: RADIUS.sm, paddingHorizontal: 10, paddingVertical: 4 },
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   banner:          { marginHorizontal: 16, marginBottom: 10 },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  loadingText: { marginTop: 12, color: T.primary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
+  loadingText: { marginTop: 12, color: T.accent, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   emptyIcon:   { marginBottom: 12 },
   emptyTitle:  { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
   emptySub:    { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 20 },
@@ -384,4 +384,4 @@ const styles = StyleSheet.create({
   chipText: { flexShrink: 1, fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
   viewMoreRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 2 },
   viewMore: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textAlign: 'right' },
-});
+}));

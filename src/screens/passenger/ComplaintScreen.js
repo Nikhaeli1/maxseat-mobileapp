@@ -8,7 +8,7 @@ import { submitComplaint } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
 import { showToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, IS_DARK } from '../../theme';
 
 const T = ROLE.passenger;
 
@@ -90,7 +90,7 @@ export default function ComplaintScreen({ route, navigation }) {
         {/* PUV SUMMARY */}
         {puv && (
           <View style={[styles.puvSummary, { borderColor: T.primaryMid }]}>
-            <Text style={[styles.summaryLabel, { color: T.primary }]}>Reporting for:</Text>
+            <Text style={[styles.summaryLabel, { color: T.accent }]}>Reporting for:</Text>
             <Text style={styles.summaryPlate}>{puv.plate}</Text>
             <Text style={styles.summarySub}>{puv.route} · {puv.driver}</Text>
             <View style={styles.summaryChips}>
@@ -109,7 +109,7 @@ export default function ComplaintScreen({ route, navigation }) {
 
         {/* COMPLAINT TYPE */}
         <View style={styles.card}>
-          <Text style={[styles.sectionLabel, { color: T.primary }]}>Type of Complaint</Text>
+          <Text style={[styles.sectionLabel, { color: T.accent }]}>Type of Complaint</Text>
           <Text style={styles.sectionHint}>Select the type of violation you are reporting.</Text>
           {COMPLAINT_TYPES.map(c => (
             <TouchableOpacity
@@ -118,9 +118,9 @@ export default function ComplaintScreen({ route, navigation }) {
               onPress={() => setType(c.key)}
               activeOpacity={0.8}
             >
-              <Icon name={c.icon} size={22} color={type === c.key ? T.primary : COLORS.textSecondary} style={styles.optionIcon} />
+              <Icon name={c.icon} size={22} color={type === c.key ? T.accent : COLORS.textSecondary} style={styles.optionIcon} />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.optionLabel, type === c.key && { color: T.primary }]}>{c.label}</Text>
+                <Text style={[styles.optionLabel, type === c.key && { color: T.accent }]}>{c.label}</Text>
                 <Text style={styles.optionDesc}>{c.desc}</Text>
                 {suggested === c.key && (
                   <View style={styles.matchTag}>
@@ -137,7 +137,7 @@ export default function ComplaintScreen({ route, navigation }) {
 
         {/* DESCRIPTION */}
         <View style={styles.card}>
-          <Text style={[styles.sectionLabel, { color: T.primary }]}>Additional Details</Text>
+          <Text style={[styles.sectionLabel, { color: T.accent }]}>Additional Details</Text>
           <TextInput
             style={styles.textArea}
             placeholder="What did you see? Standing passengers, driver behavior, exact location (optional)"
@@ -154,7 +154,7 @@ export default function ComplaintScreen({ route, navigation }) {
 
         {/* DISCLAIMER */}
         <View style={[styles.disclaimer, { backgroundColor: T.primaryLight, borderColor: T.primaryMid }]}>
-          <Text style={[styles.disclaimerText, { color: T.primaryDark }]}>
+          <Text style={[styles.disclaimerText, { color: IS_DARK ? COLORS.textSecondary : T.primaryDark }]}>
             Your report will be submitted to the LTFRB enforcement system. False reports may be penalized under LTFRB regulations.
           </Text>
         </View>
@@ -178,7 +178,7 @@ export default function ComplaintScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { padding: 16 },
 
@@ -219,4 +219,4 @@ const styles = StyleSheet.create({
 
   submitBtn:  { borderRadius: RADIUS.lg, height: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
   submitText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
-});
+}));

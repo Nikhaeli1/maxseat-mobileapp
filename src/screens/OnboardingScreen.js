@@ -16,7 +16,7 @@ import {
   Animated, Dimensions, StatusBar, Easing,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK } from '../theme';
+import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK, themed } from '../theme';
 import BusSeats from '../components/BusSeats';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
@@ -82,7 +82,7 @@ function Chip({ label, kind }) {
 function Feature({ icon, label }) {
   return (
     <View style={ui.feature}>
-      <Icon name={icon} size={24} color={COLORS.primary} style={ui.featureIcon} />
+      <Icon name={icon} size={24} color={COLORS.accent} style={ui.featureIcon} />
       <Text style={ui.featureTxt}>{label}</Text>
     </View>
   );
@@ -217,13 +217,13 @@ function P_Profile() {
         </View>
       </View>
       {[
-        ['contrast-outline', 'Dark mode follows your phone'],
+        ['contrast-outline', 'Light or dark mode, your choice'],
         ['shield-checkmark-outline', 'Switch to Enforcer mode'],
         ['play-circle-outline', 'Replay this guide'],
         ['log-out-outline', 'Log out'],
       ].map(([icon, label]) => (
         <View key={label} style={ui.menuRow}>
-          <Icon name={icon} size={18} color={COLORS.primary} style={ui.menuIcon} />
+          <Icon name={icon} size={18} color={COLORS.accent} style={ui.menuIcon} />
           <Text style={ui.menuTxt}>{label}</Text>
         </View>
       ))}
@@ -363,7 +363,7 @@ function E_Habits() {
         ['log-out-outline', 'Log out after your shift', 'Keeps dispatch records accurate'],
       ].map(([icon, t, sub]) => (
         <View key={t} style={ui.menuRow}>
-          <Icon name={icon} size={18} color={COLORS.primary} style={ui.menuIcon} />
+          <Icon name={icon} size={18} color={COLORS.accent} style={ui.menuIcon} />
           <View style={{ flex: 1 }}>
             <Text style={ui.optionTxt}>{t}</Text>
             <Text style={ui.small}>{sub}</Text>
@@ -382,7 +382,7 @@ const PASSENGER_SLIDES = [
   { Scene: P_LiveCabin, title: 'See inside, live',       sub: 'Tap a PUV to see its live cabin. Each person is a rider. Lime people are standing because every seat is taken.' },
   { Scene: P_LiveMap,   title: 'Follow it on the map',   sub: 'Watch your PUV move in real time and see how many minutes until it reaches you.' },
   { Scene: P_Report,    title: 'Report a problem',       sub: 'Overloaded or reckless? Send a report in a few taps. It goes straight to enforcers.' },
-  { Scene: P_Profile,   title: 'Make it yours',          sub: 'Dark mode follows your phone. Switch to Enforcer mode or replay this guide from Profile.' },
+  { Scene: P_Profile,   title: 'Make it yours',          sub: 'Pick light or dark mode, switch to Enforcer mode, or replay this guide from Profile.' },
 ];
 
 const ENFORCER_SLIDES = [
@@ -482,7 +482,7 @@ export default function OnboardingScreen() {
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
-const ui = StyleSheet.create({
+const ui = themed(() => ({
   stage: {
     width: W - 48, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, padding: 16,
     borderWidth: IS_DARK ? 1 : 0, borderColor: COLORS.border, ...SHADOW.md,
@@ -541,9 +541,9 @@ const ui = StyleSheet.create({
   pulse:     { position: 'absolute', width: 18, height: 18, borderRadius: 9, borderWidth: 3, borderColor: LIME },
   legend:    { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-});
+}));
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:      { flex: 1, backgroundColor: COLORS.pageBg },
   topBar:    { paddingTop: 52, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   rolePill:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
@@ -562,4 +562,4 @@ const styles = StyleSheet.create({
   back:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
   nextBtn:   { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 26, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button },
   nextTxt:   { color: '#FFFFFF', fontSize: 15, fontFamily: FONTS.extraBold },
-});
+}));

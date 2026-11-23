@@ -24,7 +24,7 @@ import {
   Animated, Dimensions, Easing, Platform,
   StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
-import { COLORS, RADIUS, FONTS, IS_DARK } from '../theme';
+import { COLORS, RADIUS, FONTS, IS_DARK, themed } from '../theme';
 import Icon from './Icon';
 
 const WIN = Dimensions.get('window');
@@ -282,7 +282,7 @@ export default function TutorialOverlay({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:     { ...StyleSheet.absoluteFillObject, zIndex: 9999, elevation: 9999 },
   dim:      { position: 'absolute', backgroundColor: DIM },
   cardWrap: { position: 'absolute', zIndex: 30, elevation: 30 },
@@ -307,4 +307,4 @@ const styles = StyleSheet.create({
   link:     { fontSize: 13, fontFamily: FONTS.semiBold },
   nextBtn:  { borderRadius: RADIUS.full, paddingHorizontal: 24, paddingVertical: 11 },
   nextTxt:  { color: '#FFFFFF', fontSize: 13.5, fontFamily: FONTS.extraBold },
-});
+}));

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, RADIUS , FONTS} from '../theme';
+import { COLORS, RADIUS , FONTS, themed } from '../theme';
 import BusSeats from './BusSeats';
 import AnimatedBar from './AnimatedBar';
 
@@ -40,7 +40,7 @@ export default function CapacityMeter({ passengers, capacity, loadPct }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   container: { borderRadius: RADIUS.md, padding: 16 },
   countRow:  { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 },
   paxCount:  { fontSize: 48, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', lineHeight: 52 },
@@ -56,4 +56,4 @@ const styles = StyleSheet.create({
   dotsRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   dot:       { width: 14, height: 14, borderRadius: 3 },
   dotsMore:  { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '700', alignSelf: 'center' },
-});
+}));

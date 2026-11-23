@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
-import { COLORS, SHADOW, RADIUS } from '../theme';
+import { COLORS, SHADOW, RADIUS, themed } from '../theme';
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
@@ -175,7 +175,7 @@ export default function RegisterScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { flexGrow: 1, paddingHorizontal: 24, paddingVertical: 48 },
 
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   // Passenger badge
   badge:     { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 14 },
   badgeDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
-  badgeText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.8 },
+  badgeText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 0.8 },
 
   cardTitle: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 4 },
   cardSub:   { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 19, marginBottom: 22 },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
 
   // Submit — matches web button: dark → primary on hover
   submitBtn: {
-    backgroundColor: COLORS.dark,
+    backgroundColor: COLORS.primary,
     borderRadius:    RADIUS.md,
     height:          52,
     justifyContent:  'center',
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   // Back to login
   loginRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   loginText: { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
-  loginLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  loginLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent },
 
   footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 8 },
-});
+}));

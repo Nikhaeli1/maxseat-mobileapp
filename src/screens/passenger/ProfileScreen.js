@@ -8,10 +8,11 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { updatePassengerProfile, changePassengerPassword } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
 import { showToast } from '../../components/Toast';
+import { useThemeMode } from '../../context/ThemeContext';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.passenger;
 
@@ -37,6 +38,14 @@ export default function ProfileScreen() {
   useFocusEffect(useCallback(() => { setMobile(user?.mobile || ''); }, [user]));
 
   const mobileChanged = mobile.trim() !== (user?.mobile || '').trim();
+
+  const { mode: themeMode, setMode: setThemeMode } = useThemeMode();
+  const chooseTheme = (m) => {
+    if (m === themeMode) return;
+    setThemeMode(m);
+    const msg = m === 'dark' ? 'Dark mode on' : m === 'light' ? 'Light mode on' : "Following your phone's setting";
+    setTimeout(() => showToast(msg), 120);
+  };
 
   const handleSave = async () => {
     if (!mobileChanged) return;
@@ -97,9 +106,9 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.name}>{user?.full_name}</Text>
-            <Text style={[styles.username, { color: T.primary }]}>@{user?.username}</Text>
+            <Text style={[styles.username, { color: T.accent }]}>@{user?.username}</Text>
             <View style={[styles.rolePill, { backgroundColor: T.primary + '15', borderColor: T.primary + '40' }]}>
-              <Text style={[styles.rolePillText, { color: T.primary }]}>Passenger · Bugo–Igpit</Text>
+              <Text style={[styles.rolePillText, { color: T.accent }]}>Passenger · Bugo–Igpit</Text>
             </View>
           </View>
         </View>
@@ -144,7 +153,7 @@ export default function ProfileScreen() {
             />
           </View>
           <TouchableOpacity
-            style={[styles.saveBtn, { backgroundColor: COLORS.dark }, (saving || !mobileChanged) && { opacity: 0.45 }]}
+            style={[styles.saveBtn, { backgroundColor: COLORS.primary }, (saving || !mobileChanged) && { opacity: 0.45 }]}
             onPress={handleSave}
             disabled={saving || !mobileChanged}
           >
@@ -183,14 +192,14 @@ export default function ProfileScreen() {
                 </View>
               ))}
               {confirmPw.length > 0 && (
-                <Text style={[styles.pwHint, newPw === confirmPw && newPw.length >= 6 && { color: COLORS.primary }]}>
+                <Text style={[styles.pwHint, newPw === confirmPw && newPw.length >= 6 && { color: COLORS.accent }]}>
                   {newPw.length < 6
                     ? 'New password needs at least 6 characters'
                     : newPw === confirmPw ? 'Passwords match' : "Passwords don't match yet"}
                 </Text>
               )}
               <TouchableOpacity
-                style={[styles.saveBtn, { backgroundColor: COLORS.dark }, pwSaving && { opacity: 0.6 }]}
+                style={[styles.saveBtn, { backgroundColor: COLORS.primary }, pwSaving && { opacity: 0.6 }]}
                 onPress={handleChangePassword}
                 disabled={pwSaving}
               >
@@ -203,13 +212,38 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* APPEARANCE */}
+        <View style={styles.card}>
+          <Text style={styles.sectionLabel}>Appearance</Text>
+          <View style={styles.segment}>
+            {[['light', 'Light'], ['dark', 'Dark'], ['system', 'Phone']].map(([m, label]) => {
+              const on = themeMode === m;
+              return (
+                <TouchableOpacity
+                  key={m}
+                  style={[styles.segBtn, on && styles.segBtnOn]}
+                  onPress={() => chooseTheme(m)}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                >
+                  <Text style={[styles.segText, on && styles.segTextOn]}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text style={styles.segHint}>
+            {themeMode === 'system' ? "Follows your phone's light or dark setting." : 'Saved on this phone.'}
+          </Text>
+        </View>
+
         {/* TUTORIAL */}
         <TouchableOpacity
           style={styles.tutorialBtn}
           onPress={handleReplayTutorial}
           activeOpacity={0.85}
         >
-          <Icon name="play-circle-outline" size={24} color={COLORS.primary} style={styles.tutorialIcon} />
+          <Icon name="play-circle-outline" size={24} color={COLORS.accent} style={styles.tutorialIcon} />
           <View>
             <Text style={styles.tutorialLabel}>Replay Tutorial</Text>
             <Text style={styles.tutorialDesc}>Watch the app walkthrough again</Text>
@@ -237,14 +271,14 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { padding: 16 },
 
   header:     { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border, ...SHADOW.sm },
   avatarRow:  { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar:     { width: 58, height: 58, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5 },
-  avatarInitial: { fontSize: 26, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: T.primary },
+  avatarInitial: { fontSize: 26, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: T.accent },
   name:       { fontSize: 18, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
   username:   { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginTop: 2 },
   rolePill:   { flexDirection: 'row', alignSelf: 'flex-start', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, marginTop: 6 },
@@ -271,9 +305,15 @@ const styles = StyleSheet.create({
   pwToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   pwToggleIcon:{ fontSize: 13, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
+  segment:      { flexDirection: 'row', backgroundColor: COLORS.inputBg, borderRadius: RADIUS.md, padding: 4, gap: 4, borderWidth: 1, borderColor: COLORS.border },
+  segBtn:       { flex: 1, height: 40, borderRadius: RADIUS.sm, justifyContent: 'center', alignItems: 'center' },
+  segBtnOn:     { backgroundColor: COLORS.primary },
+  segText:      { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+  segTextOn:    { color: '#FFFFFF' },
+  segHint:      { fontSize: 12, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 10 },
   tutorialBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 60, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, borderWidth: 1.5, borderColor: COLORS.primary + '40', marginBottom: 12, ...SHADOW.card },
-  tutorialIcon: { fontSize: 18, color: COLORS.primary, width: 24, textAlign: 'center' },
-  tutorialLabel:{ fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  tutorialIcon: { fontSize: 18, color: COLORS.accent, width: 24, textAlign: 'center' },
+  tutorialLabel:{ fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent },
   tutorialDesc: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 1 },
 
   switchBtn:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, height: 60, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, borderWidth: 1.5, borderColor: COLORS.darkBorder, marginBottom: 12, ...SHADOW.card },
@@ -286,4 +326,4 @@ const styles = StyleSheet.create({
   logoutText: { color: COLORS.danger, fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', marginBottom: 8 },
-});
+}));

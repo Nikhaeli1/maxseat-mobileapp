@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
-import { COLORS, RADIUS, SHADOW } from '../theme';
+import { COLORS, RADIUS, SHADOW, themed } from '../theme';
 
 /**
  * Grey placeholder cards shown while the first data loads, so the screen
@@ -56,10 +56,10 @@ export default function SkeletonList({ count = 3, variant }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   list:       { padding: 16, paddingTop: 4 },
   card:       { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   bar:        { backgroundColor: COLORS.border, borderRadius: 6 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   row:        { flexDirection: 'row', gap: 8 },
-});
+}));

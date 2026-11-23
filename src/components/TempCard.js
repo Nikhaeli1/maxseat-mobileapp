@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, RADIUS , FONTS} from '../theme';
+import { COLORS, RADIUS , FONTS, IS_DARK, themed } from '../theme';
 
 export default function TempCard({ temp, hot }) {
   const color     = hot ? COLORS.warning   : COLORS.success;
@@ -34,7 +34,7 @@ export default function TempCard({ temp, hot }) {
         </View>
       </View>
       {hot && (
-        <Text style={[styles.warning, { color: textColor }]}>
+        <Text style={[styles.warning, { color: IS_DARK ? COLORS.textPrimary : textColor }]}>
           Cabin temperature is above the safe limit (37.5°C). Passengers may be at risk.
         </Text>
       )}
@@ -42,7 +42,7 @@ export default function TempCard({ temp, hot }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   card:         { borderRadius: RADIUS.lg, padding: 18, marginBottom: 14 },
   sectionLabel: { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, color: COLORS.textSecondary, marginBottom: 8 },
   row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -54,5 +54,5 @@ const styles = StyleSheet.create({
   thermoBg:     { width: 20, height: 80, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 10, overflow: 'hidden', justifyContent: 'flex-end' },
   thermoFill:   { width: '100%', borderRadius: 10 },
   thermoLabel:  { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', marginTop: 4 },
-  warning:      { marginTop: 12, fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: RADIUS.sm, padding: 10, lineHeight: 18 },
-});
+  warning:      { marginTop: 12, fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', backgroundColor: IS_DARK ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.5)', borderRadius: RADIUS.sm, padding: 10, lineHeight: 18, overflow: 'hidden' },
+}));

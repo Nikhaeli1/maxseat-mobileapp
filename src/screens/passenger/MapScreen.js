@@ -7,7 +7,7 @@ import LiveStamp from '../../components/LiveStamp';
 import ErrorBanner from '../../components/ErrorBanner';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
-import { COLORS, ROLE, RADIUS , FONTS, IS_DARK} from '../../theme';
+import { COLORS, ROLE, RADIUS , FONTS, IS_DARK, themed } from '../../theme';
 
 const T = ROLE.passenger;
 
@@ -54,8 +54,8 @@ export default function MapScreen() {
         </View>
         <TouchableOpacity style={styles.reloadBtn} onPress={live.reload} disabled={live.busy} accessibilityLabel="Refresh map">
           {live.busy
-            ? <ActivityIndicator size="small" color={T.primary} />
-            : <Icon name="refresh" size={19} color={T.primary} />}
+            ? <ActivityIndicator size="small" color={T.accent} />
+            : <Icon name="refresh" size={19} color={T.accent} />}
         </TouchableOpacity>
       </View>
 
@@ -97,7 +97,7 @@ export default function MapScreen() {
 
         {loading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={T.primary} />
+            <ActivityIndicator size="large" color={T.accent} />
             <Text style={styles.loadingText}>Loading PUV locations…</Text>
           </View>
         )}
@@ -106,7 +106,7 @@ export default function MapScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root: { flex: 1, backgroundColor: COLORS.cardBg },
   mapArea: { flex: 1 },
   map:  { flex: 1 },
@@ -135,5 +135,5 @@ const styles = StyleSheet.create({
   calloutStats:   { flexDirection: 'row', gap: 6, marginBottom: 8 },
   statChip:       { borderRadius: RADIUS.sm, paddingHorizontal: 8, paddingVertical: 4 },
   statChipText:   { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700' },
-  calloutCta:     { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, textAlign: 'right' },
-});
+  calloutCta:     { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, textAlign: 'right' },
+}));

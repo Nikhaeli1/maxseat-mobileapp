@@ -10,16 +10,16 @@ import { friendlyError } from '../../api/errors';
 import Icon from '../../components/Icon';
 import BusSeats from '../../components/BusSeats';
 import StatusBadge from '../../components/StatusBadge';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, byMode } from '../../theme';
 
 const T = ROLE.enforcer;
 const MAX_NOTES = 1000;
 
-const ACTIONS = [
+const ACTIONS = byMode(() => ([
   { key: 'warning',   label: 'Issue Warning',     icon: 'warning-outline',  desc: 'Verbal or written warning, no fine', color: COLORS.warning },
   { key: 'ticket',    label: 'Issue Ticket',       icon: 'document-text-outline', desc: 'Formal citation, ₱5,000.00 fine',   color: COLORS.danger  },
-  { key: 'apprehend', label: 'Apprehend Vehicle',  icon: 'car-outline', desc: 'Full apprehension, ₱10,000.00 fine', color: COLORS.primary    },
-];
+  { key: 'apprehend', label: 'Apprehend Vehicle',  icon: 'car-outline', desc: 'Full apprehension, ₱10,000.00 fine', color: COLORS.accent    },
+]));
 
 export default function ActionScreen({ route, navigation }) {
   const { order }   = route.params;
@@ -232,7 +232,7 @@ export default function ActionScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { padding: 16 },
 
@@ -278,4 +278,4 @@ const styles = StyleSheet.create({
 
   submitBtn:    { borderRadius: RADIUS.lg, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
   submitText:   { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
-});
+}));

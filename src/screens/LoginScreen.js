@@ -6,7 +6,8 @@ import {
 } from 'react-native';
 import { useAuth, getLastUsername } from '../context/AuthContext';
 import { friendlyError } from '../api/errors';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../theme';
+import { useThemeMode } from '../context/ThemeContext';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../theme';
 import Logo from '../components/Logo';
 
 export default function LoginScreen({ navigation }) {
@@ -18,6 +19,7 @@ export default function LoginScreen({ navigation }) {
   const [showPwd,  setShowPwd]  = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const { dark, toggle: toggleTheme } = useThemeMode();
   const passwordRef = useRef(null);
   const usernameRef = useRef('');
   usernameRef.current = username;
@@ -135,6 +137,17 @@ export default function LoginScreen({ navigation }) {
       {/* Role-tinted gradient background */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.gradFrom }]} />
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.gradTo, opacity: 0.55 }]} />
+
+      {/* Light / dark switch */}
+      <TouchableOpacity
+        onPress={toggleTheme}
+        style={styles.themeBtn}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        <Text style={styles.themeBtnText}>{dark ? 'Light mode' : 'Dark mode'}</Text>
+      </TouchableOpacity>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -281,7 +294,7 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:  { flex: 1, backgroundColor: COLORS.hoverBg },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 48 },
 
@@ -349,6 +362,9 @@ const styles = StyleSheet.create({
   peekBtn:  { paddingHorizontal: 6, paddingVertical: 4 },
   peekText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
 
+  themeBtn:     { position: 'absolute', top: 48, right: 16, zIndex: 5, paddingHorizontal: 12, height: 30, borderRadius: RADIUS.full, justifyContent: 'center', backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.border },
+  themeBtnText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
+
   errorBox:  { backgroundColor: COLORS.dangerBg, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: COLORS.dangerBorder, padding: 12, marginBottom: 12 },
   errorText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textPrimary, lineHeight: 18 },
 
@@ -367,10 +383,10 @@ const styles = StyleSheet.create({
 
   registerRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16, marginBottom: 4 },
   registerText: { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
-  registerLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  registerLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent },
 
   footer: {
     textAlign: 'center', color: COLORS.textMuted,
     fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', lineHeight: 18, marginTop: 12,
   },
-});
+}));

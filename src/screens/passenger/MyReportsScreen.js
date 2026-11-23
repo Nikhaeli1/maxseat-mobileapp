@@ -13,20 +13,20 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LiveStamp from '../../components/LiveStamp';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, byMode } from '../../theme';
 
 const T = ROLE.passenger;
 
-const TYPE_CONFIG = {
+const TYPE_CONFIG = byMode(() => ({
   overload: { icon: 'people-outline', label: 'Passenger Overloading', color: COLORS.danger,  bg: COLORS.dangerLight },
   thermal:  { icon: 'thermometer-outline', label: 'Elevated Temperature',  color: COLORS.warning, bg: COLORS.warningBg },
   other:    { icon: 'alert-circle-outline', label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
-};
+}));
 
-const STATUS_CONFIG = {
-  open:   { color: T.primary, bg: T.primaryLight, label: 'OPEN' },
+const STATUS_CONFIG = byMode(() => ({
+  open:   { color: T.accent, bg: T.primaryLight, label: 'OPEN' },
   closed: { color: COLORS.success, bg: COLORS.successBg,      label: 'RESOLVED' },
-};
+}));
 
 export default function MyReportsScreen() {
   const { user }   = useAuth();
@@ -104,7 +104,7 @@ export default function MyReportsScreen() {
       <View style={styles.statRow}>
         {[
           { value: complaints.length, label: 'Total',    color: COLORS.textPrimary },
-          { value: openCount,         label: 'Open',     color: T.primary },
+          { value: openCount,         label: 'Open',     color: T.accent },
           { value: closedCount,       label: 'Resolved', color: COLORS.success },
         ].map(({ value, label, color }, i) => (
           <View key={label} style={[styles.statCard, i > 0 && styles.statCardBorder]}>
@@ -152,12 +152,12 @@ export default function MyReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root: { flex: 1, backgroundColor: COLORS.pageBg },
 
   header: { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   passengerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
-  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
+  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, letterSpacing: 0.5 },
   title: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
   sub:   { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
 
@@ -194,4 +194,4 @@ const styles = StyleSheet.create({
 
   descBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10 },
   descText: { fontSize: 12, fontStyle: 'italic', lineHeight: 17 },
-});
+}));
