@@ -18,22 +18,22 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <style>
-  html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #e5e7eb; }
+  html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #DCE8E1; }
   body { font-family: -apple-system, Roboto, "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
   #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
-         text-align: center; padding: 20px; color: #64748b; font-size: 14px; background: #f8fafc; z-index: 9999; }
+         text-align: center; padding: 20px; color: #5E6F67; font-size: 14px; background: #EEF5F1; z-index: 9999; }
   .ms-pop { min-width: 170px; max-width: 230px; }
-  .ms-title { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
-  .ms-line { font-size: 12px; color: #475569; margin-top: 2px; }
-  .ms-line.warn { color: #d97706; font-weight: 700; }
-  .ms-line.bad  { color: #dc2626; font-weight: 700; }
-  .ms-nogps { font-size: 11px; color: #64748b; margin-top: 6px; }
-  .ms-cta { display: block; margin-top: 10px; padding: 9px 10px; border-radius: 10px; background: #2563eb;
+  .ms-title { font-size: 16px; font-weight: 800; color: #14211B; margin-bottom: 2px; }
+  .ms-line { font-size: 12px; color: #5E6F67; margin-top: 2px; }
+  .ms-line.warn { color: #4D6B00; font-weight: 700; }
+  .ms-line.bad  { color: #14211B; font-weight: 800; background: #C6F24E; border-radius: 6px; padding: 1px 6px; display: inline-block; }
+  .ms-nogps { font-size: 11px; color: #8C9A93; margin-top: 6px; }
+  .ms-cta { display: block; margin-top: 10px; padding: 9px 10px; border-radius: 10px; background: #2F6F5A;
             color: #fff; font-size: 13px; font-weight: 800; text-align: center; }
   .leaflet-container a.ms-cta, .leaflet-container a.ms-cta:visited { color: #fff; text-decoration: none; }
   .leaflet-container a.ms-btn { color: #0f172a; }
   .ms-btn { display: block; width: 36px; height: 36px; line-height: 34px; text-align: center; background: #fff;
-            color: #0f172a; font-size: 18px; font-weight: 700; text-decoration: none; }
+            color: #14211B; font-size: 18px; font-weight: 700; text-decoration: none; }
   .leaflet-popup-content { margin: 12px 14px; }
 </style>
 </head>
@@ -117,6 +117,23 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
     else map.fitBounds(pts, { padding: [48, 48], maxZoom: 16 });
   }
 
+  // Move a dot to its new spot over ~0.9 s instead of jumping (live updates)
+  function glide(mk, to) {
+    var from = mk.getLatLng();
+    if (mk._msAnim) cancelAnimationFrame(mk._msAnim);
+    var dLat = to[0] - from.lat, dLng = to[1] - from.lng;
+    if (Math.abs(dLat) < 1e-7 && Math.abs(dLng) < 1e-7) return;
+    if (Math.abs(dLat) > 0.05 || Math.abs(dLng) > 0.05) { mk.setLatLng(to); return; }   // big jump: no glide
+    var t0 = null, D = 900;
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / D), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      mk.setLatLng([from.lat + dLat * e, from.lng + dLng * e]);
+      if (k < 1) mk._msAnim = requestAnimationFrame(step); else mk._msAnim = null;
+    }
+    mk._msAnim = requestAnimationFrame(step);
+  }
+
   // Called from React Native with the full marker list each time data changes
   function setMarkers(list) {
     current = list || [];
@@ -124,7 +141,8 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
     current.forEach(function (m) {
       var k = String(m.id); seen[k] = true;
       if (layer[k]) {
-        layer[k].setLatLng(pos(m)).setStyle(style(m)).setPopupContent(popup(m));
+        glide(layer[k], pos(m));
+        layer[k].setStyle(style(m)).setPopupContent(popup(m));
       } else {
         layer[k] = L.circleMarker(pos(m), style(m)).addTo(map).bindPopup(popup(m));
       }
@@ -167,10 +185,10 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
     }
     useTiles(0);
 
-    if (I) control('&#x2922;', 'Show all', function () { fit(); });
+    if (I) control('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#14211B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>', 'Show all', function () { fit(); });
     if (I && OPTS.showLocate) {
       var me = null;
-      control('&#x25CE;', 'My location', function () {
+      control('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#14211B" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6" fill="#14211B"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>', 'My location', function () {
         if (!navigator.geolocation) { post({ type: 'locate-failed' }); return; }
         navigator.geolocation.getCurrentPosition(function (p) {
           var ll = [p.coords.latitude, p.coords.longitude];

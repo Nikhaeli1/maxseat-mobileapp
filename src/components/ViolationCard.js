@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import StatusBadge from './StatusBadge';
+import Icon from './Icon';
 import { COLORS, SHADOW, RADIUS , FONTS} from '../theme';
 
 export default function ViolationCard({ order, onPress }) {
@@ -41,12 +42,12 @@ export default function ViolationCard({ order, onPress }) {
       {/* Meta info chips — matching web card footer style */}
       <View style={styles.metaRow}>
         {[
-          { icon: '📍', text: order.loc_name },
-          { icon: '👤', text: order.driver   },
-          { icon: '🕒', text: order.last_update },
+          { icon: 'location-outline', text: order.loc_name },
+          { icon: 'person-outline',   text: order.driver   },
+          { icon: 'time-outline',     text: order.last_update },
         ].map(({ icon, text }) => (
           <View key={icon} style={styles.metaChip}>
-            <Text style={styles.metaIcon}>{icon}</Text>
+            <Icon name={icon} size={13} color={COLORS.textSecondary} />
             <Text style={styles.metaText} numberOfLines={1}>{text}</Text>
           </View>
         ))}
@@ -62,7 +63,7 @@ export default function ViolationCard({ order, onPress }) {
             styles.respondText,
             isCritical ? styles.respondTextCritical : styles.respondTextNormal,
           ]}>
-            {isCritical ? 'Urgent — Respond' : 'Respond & Intercept →'}
+            {isCritical ? 'Urgent: Respond now' : 'Respond and intercept'}
           </Text>
         </View>
       </View>
@@ -116,7 +117,6 @@ const styles = StyleSheet.create({
     borderWidth:      1,
     borderColor:     COLORS.border,
   },
-  metaIcon: { fontSize: 14 },
   metaText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', flex: 1 },
 
   respondRow:          { marginTop: 12 },

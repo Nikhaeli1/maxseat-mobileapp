@@ -4,6 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { BASE_URL, CARTO_KEY } from '../api/apiService';
 import { buildMapHtml } from './mapHtml';
+import { showToast } from './Toast';
 
 /**
  * Map (Leaflet; CARTO tiles with EXPO_PUBLIC_CARTO_KEY, else OpenStreetMap) shown in a WebView.
@@ -49,6 +50,7 @@ export default function LeafletMap({
     try { msg = JSON.parse(e.nativeEvent.data); } catch (_) { return; }
     if (msg.type === 'ready') setReady(true);
     else if (msg.type === 'press' && onMarkerPress) onMarkerPress(msg.id);
+    else if (msg.type === 'locate-failed') showToast("Couldn't find your location. Turn on location for the app and try again.", { duration: 3600 });
   }, [onMarkerPress]);
 
   return (

@@ -4,7 +4,8 @@ import {
   StyleSheet, ActivityIndicator, KeyboardAvoidingView,
   Platform, ScrollView, Alert, StatusBar, Animated, Easing,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, getLastUsername } from '../context/AuthContext';
+import { friendlyError } from '../api/errors';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../theme';
 import Logo from '../components/Logo';
 
@@ -16,6 +17,10 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [showPwd,  setShowPwd]  = useState(false);
   const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+  const passwordRef = useRef(null);
+  const usernameRef = useRef('');
+  usernameRef.current = username;
 
   useEffect(() => {
     if (pendingRole) setRole(pendingRole);
@@ -92,17 +97,29 @@ export default function LoginScreen({ navigation }) {
 
   const theme = ROLE[role];
 
+  // Fill in the last username used for this role (only if the box is empty)
+  useEffect(() => {
+    let off = false;
+    getLastUsername(role).then((u) => { if (!off && u && !usernameRef.current) setUsername(u); });
+    setError('');
+    return () => { off = true; };
+  }, [role]);
+
   const handleLogin = async () => {
+    if (loading) return;
     if (!username.trim() || !password.trim()) {
-      Alert.alert('Required', 'Please enter your username and password.');
+      setError('Enter your username and password.');
       return;
     }
+    setError('');
     setLoading(true);
     try {
       await login(username.trim(), password, role);
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Login failed. Check your credentials.';
-      Alert.alert('Authentication Failed', msg);
+      const status = err?.response?.status;
+      setError(status === 401
+        ? 'Wrong username or password. Check them and try again.'
+        : friendlyError(err, 'Sign-in failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -158,9 +175,7 @@ export default function LoginScreen({ navigation }) {
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
                 >
-                  <Text style={[styles.roleBtnLabel, active && styles.roleBtnLabelActive]}>
-                    {r === 'passenger' ? '🚌  ' : '🛡  '}{t.label}
-                  </Text>
+                  <Text style={[styles.roleBtnLabel, active && styles.roleBtnLabelActive]}>{t.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -168,9 +183,6 @@ export default function LoginScreen({ navigation }) {
 
           <Animated.View style={formStyle}>
           <View style={styles.titleRow}>
-            <Animated.View style={[styles.roleBadge, badgeStyle]}>
-              <Text style={styles.roleBadgeIcon}>{role === 'passenger' ? '🚌' : '🛡'}</Text>
-            </Animated.View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>
                 {role === 'passenger' ? 'Passenger sign in' : 'Enforcer sign in'}
@@ -192,10 +204,14 @@ export default function LoginScreen({ navigation }) {
                 placeholder={role === 'enforcer' ? 'e.g. PNP-Police' : 'Enter your username'}
                 placeholderTextColor={COLORS.textMuted}
                 value={username}
-                onChangeText={setUsername}
+                onChangeText={(t) => { setUsername(t); if (error) setError(''); }}
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="username"
+                textContentType="username"
                 returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => passwordRef.current?.focus()}
               />
             </View>
           </View>
@@ -205,11 +221,16 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.fieldLabel}>Password</Text>
             <View style={[styles.inputWrap, password && { borderColor: COLORS.primary }]}>
               <TextInput
+                ref={passwordRef}
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Enter your password"
                 placeholderTextColor={COLORS.textMuted}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); if (error) setError(''); }}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password"
+                textContentType="password"
                 secureTextEntry={!showPwd}
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
@@ -219,6 +240,12 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
+
+          {!!error && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
           {/* SUBMIT */}
           <TouchableOpacity
@@ -301,7 +328,6 @@ const styles = StyleSheet.create({
   },
   titleRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
   roleBadge:     { width: 48, height: 48, borderRadius: 15, backgroundColor: '#C6F24E', alignItems: 'center', justifyContent: 'center' },
-  roleBadgeIcon: { fontSize: 22 },
   roleBtnLabel:       { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary },
   roleBtnLabelActive: { color: '#fff' },
 
@@ -322,6 +348,9 @@ const styles = StyleSheet.create({
   input:    { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   peekBtn:  { paddingHorizontal: 6, paddingVertical: 4 },
   peekText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
+
+  errorBox:  { backgroundColor: COLORS.dangerBg, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: COLORS.dangerBorder, padding: 12, marginBottom: 12 },
+  errorText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textPrimary, lineHeight: 18 },
 
   // SUBMIT
   submitBtn: {

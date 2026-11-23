@@ -1,37 +1,27 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, StatusBar, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, StatusBar, ActivityIndicator, TouchableOpacity } from 'react-native';
 import LeafletMap from '../../components/LeafletMap';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { fetchAllPuvs } from '../../api/apiService';
-import { useAuth } from '../../context/AuthContext';
-import { COLORS, ROLE, RADIUS , FONTS} from '../../theme';
+import LiveStamp from '../../components/LiveStamp';
+import ErrorBanner from '../../components/ErrorBanner';
+import useLiveData from '../../hooks/useLiveData';
+import Icon from '../../components/Icon';
+import { COLORS, ROLE, RADIUS , FONTS, IS_DARK} from '../../theme';
 
 const T = ROLE.passenger;
 
 export default function MapScreen() {
-  const navigation          = useNavigation();
-  const { logout }          = useAuth();
-  const [puvs, setPuvs]     = useState([]);
-  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+
+  // Live: refreshes on focus and every 15 s. Dots move to their new spots
+  // without the map resetting your zoom.
+  const live    = useLiveData(fetchAllPuvs, { interval: 15000 });
+  const puvs    = useMemo(() => live.data?.puvs || [], [live.data]);
+  const loading = live.loading;
 
   // Map dots: calm green when fine, lime when overloaded (the 'look here' color)
   const markerColor = (p) => p.overloaded ? COLORS.alert : p.load_pct >= 80 ? '#DDF79A' : COLORS.primary;
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await fetchAllPuvs();
-      const list = data.puvs || [];
-      setPuvs(list);   // the map zooms to the vehicles by itself
-    } catch (err) {
-      if (err?.response?.status === 401)
-        Alert.alert('Session Expired', 'Please log in again.', [{ text: 'OK', onPress: logout }]);
-    } finally {
-      setLoading(false);
-    }
-  }, [logout]);
-
-  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const overloaded = puvs.filter(p => p.overloaded).length;
 
@@ -44,11 +34,11 @@ export default function MapScreen() {
     title:  item.plate,
     lines:  [
       item.company,
-      `📍 ${item.loc_name || '—'}`,
-      { text: `👥 ${item.passengers}/${item.capacity}`, tone: item.overloaded ? 'bad' : '' },
-      { text: `🌡 ${item.temp}°C`, tone: item.hot ? 'warn' : '' },
+      item.loc_name || '—',
+      { text: `${item.passengers}/${item.capacity} passengers`, tone: item.overloaded ? 'bad' : '' },
+      { text: `${item.temp}°C cabin`, tone: item.hot ? 'warn' : '' },
     ],
-    cta:    'View details →',
+    cta:    'View details',
   })), [puvs]);
 
   return (
@@ -59,10 +49,13 @@ export default function MapScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>PUV Live Map</Text>
-          <Text style={styles.sub}>Bugo–Igpit · Real-time</Text>
+          <Text style={styles.sub}>Bugo–Igpit</Text>
+          <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} style={{ marginTop: 4 }} />
         </View>
-        <TouchableOpacity style={styles.reloadBtn} onPress={load}>
-          <Text style={[styles.reloadIcon, { color: T.primary }]}>↻</Text>
+        <TouchableOpacity style={styles.reloadBtn} onPress={live.reload} disabled={live.busy} accessibilityLabel="Refresh map">
+          {live.busy
+            ? <ActivityIndicator size="small" color={T.primary} />
+            : <Icon name="refresh" size={19} color={T.primary} />}
         </TouchableOpacity>
       </View>
 
@@ -80,33 +73,42 @@ export default function MapScreen() {
         ))}
         {overloaded > 0 && (
           <View style={styles.alertBadge}>
-            <Text style={styles.alertText}>⚠ {overloaded}</Text>
+            <Text style={styles.alertText}>{overloaded} overloaded</Text>
           </View>
         )}
       </View>
 
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={T.primary} />
-          <Text style={styles.loadingText}>Loading PUV locations…</Text>
-        </View>
-      )}
+      <View style={styles.mapArea}>
+        <LeafletMap
+          style={styles.map}
+          markers={markers}
+          showLocate
+          onMarkerPress={(id) => {
+            const item = puvs.find(p => String(p.puv_id) === String(id));
+            if (item) navigation.navigate('PuvDetail', { plate: item.plate, preview: item });
+          }}
+        />
 
-      <LeafletMap
-        style={styles.map}
-        markers={markers}
-        showLocate
-        onMarkerPress={(id) => {
-          const item = puvs.find(p => String(p.puv_id) === String(id));
-          if (item) navigation.navigate('PuvDetail', { plate: item.plate });
-        }}
-      />
+        {live.error && !loading && (
+          <View style={styles.bannerWrap} pointerEvents="box-none">
+            <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} />
+          </View>
+        )}
+
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={T.primary} />
+            <Text style={styles.loadingText}>Loading PUV locations…</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.cardBg },
+  mapArea: { flex: 1 },
   map:  { flex: 1 },
 
   header:    { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: COLORS.border },
@@ -122,7 +124,8 @@ const styles = StyleSheet.create({
   alertBadge: { marginLeft: 'auto', backgroundColor: COLORS.alert, borderRadius: RADIUS.full, paddingHorizontal: 9, paddingVertical: 3 },
   alertText:  { color: COLORS.onAlert, fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.85)', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: IS_DARK ? 'rgba(27,31,29,0.85)' : 'rgba(255,255,255,0.85)', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  bannerWrap:     { position: 'absolute', left: 12, right: 12, bottom: 16, zIndex: 11 },
   loadingText:    { color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginTop: 10 },
 
   callout:        { width: 220, padding: 6 },

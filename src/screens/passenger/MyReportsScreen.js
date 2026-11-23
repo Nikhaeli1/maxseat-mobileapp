@@ -1,21 +1,26 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   View, Text, FlatList, StyleSheet, StatusBar,
-  ActivityIndicator, RefreshControl, Alert,
+  RefreshControl, TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useScrollToTop, useNavigation } from '@react-navigation/native';
 import { fetchMyComplaints } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
 import AnimatedListItem from '../../components/AnimatedListItem';
+import SkeletonList from '../../components/Skeleton';
+import ErrorBanner from '../../components/ErrorBanner';
+import LiveStamp from '../../components/LiveStamp';
+import useLiveData from '../../hooks/useLiveData';
+import Icon from '../../components/Icon';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.passenger;
 
 const TYPE_CONFIG = {
-  overload: { icon: '👥', label: 'Passenger Overloading', color: COLORS.danger,  bg: COLORS.dangerLight },
-  thermal:  { icon: '🌡', label: 'Elevated Temperature',  color: COLORS.warning, bg: COLORS.warningBg },
-  other:    { icon: '⚠',  label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
+  overload: { icon: 'people-outline', label: 'Passenger Overloading', color: COLORS.danger,  bg: COLORS.dangerLight },
+  thermal:  { icon: 'thermometer-outline', label: 'Elevated Temperature',  color: COLORS.warning, bg: COLORS.warningBg },
+  other:    { icon: 'alert-circle-outline', label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
 };
 
 const STATUS_CONFIG = {
@@ -24,25 +29,16 @@ const STATUS_CONFIG = {
 };
 
 export default function MyReportsScreen() {
-  const { user }                     = useAuth();
-  const [complaints, setComplaints]  = useState([]);
-  const [loading,    setLoading]     = useState(true);
-  const [refreshing, setRefreshing]  = useState(false);
+  const { user }   = useAuth();
+  const navigation = useNavigation();
 
-  const load = useCallback(async (isRefresh = false) => {
-    isRefresh ? setRefreshing(true) : setLoading(true);
-    try {
-      const data = await fetchMyComplaints();
-      setComplaints(data.complaints || []);
-    } catch (err) {
-      Alert.alert('Error', 'Could not load your reports.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  // Refreshes on focus (so a new report shows right away) and every 30 s
+  const live       = useLiveData(fetchMyComplaints, { interval: 30000 });
+  const complaints = useMemo(() => live.data?.complaints || [], [live.data]);
+  const loading    = live.loading;
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  const scrollRef = useRef(null);
+  useScrollToTop(scrollRef);
 
   const openCount   = complaints.filter(c => c.status === 'open').length;
   const closedCount = complaints.filter(c => c.status !== 'open').length;
@@ -54,7 +50,7 @@ export default function MyReportsScreen() {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={[styles.typeIcon, { backgroundColor: tc.bg }]}>
-            <Text style={{ fontSize: 20 }}>{tc.icon}</Text>
+            <Icon name={tc.icon} size={22} color={tc.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.typeName}>{tc.label}</Text>
@@ -70,7 +66,7 @@ export default function MyReportsScreen() {
         <View style={styles.infoGrid}>
           {[
             ['Plate', item.plate],
-            ['Date',  item.timestamp ? item.timestamp.split('T')[0] : '—'],
+            ['Sent',  item.timestamp ? item.timestamp.replace('T', ' ').slice(0, 16) : '—'],
             ['Pax',   item.passengers != null ? `${item.passengers}/${item.capacity}` : '—'],
             ['Temp',  item.temp != null ? `${item.temp}°C` : '—'],
           ].map(([label, value]) => (
@@ -101,6 +97,7 @@ export default function MyReportsScreen() {
         </View>
         <Text style={styles.title}>My Reports</Text>
         <Text style={styles.sub}>{user?.full_name}</Text>
+        <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} style={{ marginTop: 6 }} />
       </View>
 
       {/* STATS */}
@@ -117,27 +114,30 @@ export default function MyReportsScreen() {
         ))}
       </View>
 
-      {loading && (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={T.primary} />
-          <Text style={[styles.loadingText, { color: T.primary }]}>Loading your reports…</Text>
-        </View>
+      {live.error && !loading && (
+        <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} style={{ marginHorizontal: 16, marginTop: 12 }} />
       )}
 
-      {!loading && complaints.length === 0 && (
+      {loading && <SkeletonList count={2} variant="report" />}
+
+      {!loading && complaints.length === 0 && !live.error && (
         <View style={styles.centered}>
-          <Text style={styles.emptyIcon}>📢</Text>
+          <Icon name="megaphone-outline" size={48} color={COLORS.textMuted} style={styles.emptyIcon} />
           <Text style={styles.emptyTitle}>No Reports Yet</Text>
-          <Text style={styles.emptySub}>Violation reports you submit will appear here.</Text>
+          <Text style={styles.emptySub}>See a PUV breaking the rules? Open it from the PUVs tab and tap “Report a Violation”.</Text>
+          <TouchableOpacity style={[styles.emptyBtn, { backgroundColor: T.primary }]} onPress={() => navigation.navigate('PUVs')}>
+            <Text style={styles.emptyBtnText}>Go to PUVs</Text>
+          </TouchableOpacity>
         </View>
       )}
 
       {!loading && complaints.length > 0 && (
         <FlatList
+          ref={scrollRef}
           data={complaints}
           keyExtractor={(item, i) => `${item.serial}-${i}`}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={T.primary} />}
+          refreshControl={<RefreshControl refreshing={live.refreshing} onRefresh={live.refresh} tintColor={T.primary} colors={[T.primary]} />}
           ListHeaderComponent={
             <Text style={styles.listHeader}>{complaints.length} report{complaints.length !== 1 ? 's' : ''} submitted</Text>
           }
@@ -169,9 +169,11 @@ const styles = StyleSheet.create({
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   loadingText: { marginTop: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
-  emptyIcon:   { fontSize: 52, marginBottom: 12 },
+  emptyIcon:   { marginBottom: 12 },
   emptyTitle:  { fontSize: 18, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
-  emptySub:    { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20 },
+  emptySub:    { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 18 },
+  emptyBtn:     { borderRadius: RADIUS.md, paddingHorizontal: 24, paddingVertical: 10 },
+  emptyBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 14 },
 
   list:       { padding: 16 },
   listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },

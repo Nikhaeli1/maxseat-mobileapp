@@ -1,85 +1,95 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, StatusBar, RefreshControl,
+  StyleSheet, StatusBar, RefreshControl,
 } from 'react-native';
 import { fetchPuvDetail } from '../../api/apiService';
-import { useAuth } from '../../context/AuthContext';
 import CapacityMeter from '../../components/CapacityMeter';
 import TempCard from '../../components/TempCard';
+import ErrorBanner from '../../components/ErrorBanner';
+import LiveStamp from '../../components/LiveStamp';
+import useLiveData from '../../hooks/useLiveData';
+import Icon from '../../components/Icon';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.passenger;
+const show = (v) => (v == null || v === '' ? '—' : String(v));
 
 export default function PuvDetailScreen({ route, navigation }) {
-  const { plate }         = route.params;
-  const { logout }        = useAuth();
-  const [puv, setPuv]     = useState(null);
-  const [loading,    setLoading]    = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { plate, preview } = route.params;
 
-  const load = useCallback(async (isRefresh = false) => {
-    isRefresh ? setRefreshing(true) : setLoading(true);
-    try {
-      const data = await fetchPuvDetail(plate);
-      setPuv(data);
-    } catch (err) {
-      if (err?.response?.status === 401) {
-        Alert.alert('Session Expired', 'Please log in again.', [{ text: 'OK', onPress: logout }]);
-      } else if (err?.response?.status === 404) {
-        Alert.alert('Not Found', `PUV "${plate}" not found.`, [{ text: 'Go Back', onPress: () => navigation.goBack() }]);
-      } else {
-        Alert.alert('Error', 'Could not load PUV details.');
-      }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [plate, logout, navigation]);
+  // Opens instantly with the card's numbers from the list (preview), then
+  // fills in the rest and keeps refreshing every 10 s while you look at it.
+  const fetcher = useCallback(() => fetchPuvDetail(plate), [plate]);
+  const live    = useLiveData(fetcher, { interval: 10000, initial: preview || null });
+  const puv     = live.data;
+  const notFound = live.error?.response?.status === 404;
 
-  useEffect(() => { load(); }, [load]);
+  // Header is always there, even before the first answer
+  const header = (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityLabel="Back" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Icon name="chevron-back" size={22} color={COLORS.textOnDark} />
+      </TouchableOpacity>
+      <View style={styles.headerText}>
+        <Text style={styles.headerPlate}>{puv?.plate || plate}</Text>
+        {puv ? (
+          <Text style={styles.headerSub}>{puv.company} · {puv.route}</Text>
+        ) : null}
+        <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} onDark style={{ marginTop: 4 }} />
+      </View>
+      {puv && (puv.overloaded || puv.hot) && (
+        <View style={styles.criticalPill}>
+          <Text style={styles.criticalText}>ALERT</Text>
+        </View>
+      )}
+    </View>
+  );
 
-  if (loading) {
+  if (!puv) {
     return (
-      <View style={styles.splash}>
-        <ActivityIndicator size="large" color={T.primary} />
-        <Text style={[styles.splashText, { color: T.primary }]}>Loading {plate}…</Text>
+      <View style={styles.root}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
+        {header}
+        <View style={styles.splash}>
+          {notFound ? (
+            <>
+              <Text style={styles.splashTitle}>PUV not found</Text>
+              <Text style={styles.splashText}>{plate} isn't on the route right now.</Text>
+              <TouchableOpacity style={[styles.smallBtn, { backgroundColor: T.primary }]} onPress={() => navigation.goBack()}>
+                <Text style={styles.smallBtnText}>Go back</Text>
+              </TouchableOpacity>
+            </>
+          ) : live.error ? (
+            <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} style={{ alignSelf: 'stretch' }} />
+          ) : (
+            <Text style={[styles.splashText, { color: T.primary }]}>Loading {plate}…</Text>
+          )}
+        </View>
       </View>
     );
   }
 
-  if (!puv) return null;
-
-  const isCritical = puv.overloaded || puv.hot;
+  const over = Math.max(0, puv.passengers - puv.capacity);
+  const free = Math.max(0, puv.capacity - puv.passengers);
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
-
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.headerText}>
-          <Text style={styles.headerPlate}>{puv.plate}</Text>
-          <Text style={styles.headerSub}>{puv.company} · {puv.route}</Text>
-        </View>
-        {isCritical && (
-          <View style={styles.criticalPill}>
-            <Text style={styles.criticalText}>⚠ ALERT</Text>
-          </View>
-        )}
-      </View>
+      {header}
 
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={T.primary} />}
+        refreshControl={<RefreshControl refreshing={live.refreshing} onRefresh={live.refresh} tintColor={T.primary} colors={[T.primary]} />}
       >
+        {live.error && !notFound && (
+          <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} style={{ marginBottom: 14 }} />
+        )}
+
         {/* CAPACITY */}
         <View style={[styles.card, { padding: 0, overflow: 'hidden' }]}>
           <View style={[styles.cardLabel, { backgroundColor: T.primaryLight }]}>
-            <Text style={[styles.sectionLabel, { color: T.primary }]}>👥 Passenger Load</Text>
+            <Text style={[styles.sectionLabel, { color: T.primary }]}>Passenger Load</Text>
           </View>
           <View style={{ padding: 18 }}>
             <CapacityMeter passengers={puv.passengers} capacity={puv.capacity} loadPct={puv.load_pct} />
@@ -91,7 +101,7 @@ export default function PuvDetailScreen({ route, navigation }) {
 
         {/* VEHICLE INFO */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>🚌 Vehicle Info</Text>
+          <Text style={styles.sectionLabel}>Vehicle Info</Text>
           <View style={styles.infoGrid}>
             {[
               ['Plate',    puv.plate],
@@ -103,7 +113,7 @@ export default function PuvDetailScreen({ route, navigation }) {
             ].map(([label, value]) => (
               <View key={label} style={styles.infoItem}>
                 <Text style={styles.infoLabel}>{label}</Text>
-                <Text style={styles.infoValue} numberOfLines={2}>{value}</Text>
+                <Text style={styles.infoValue} numberOfLines={2}>{show(value)}</Text>
               </View>
             ))}
           </View>
@@ -111,13 +121,13 @@ export default function PuvDetailScreen({ route, navigation }) {
 
         {/* STATUS */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>📡 Live Status</Text>
+          <Text style={styles.sectionLabel}>Live Status</Text>
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, { backgroundColor: puv.overloaded ? COLORS.danger : COLORS.success }]} />
             <Text style={styles.statusText}>
               {puv.overloaded
-                ? `Overloaded by ${puv.passengers - puv.capacity} passenger${puv.passengers - puv.capacity !== 1 ? 's' : ''}`
-                : `Within capacity (${puv.capacity - puv.passengers} seat${puv.capacity - puv.passengers !== 1 ? 's' : ''} available)`}
+                ? `Overloaded by ${over} passenger${over !== 1 ? 's' : ''}`
+                : `Within capacity (${free} seat${free !== 1 ? 's' : ''} available)`}
             </Text>
           </View>
           {puv.hot && (
@@ -126,7 +136,7 @@ export default function PuvDetailScreen({ route, navigation }) {
               <Text style={styles.statusText}>Cabin temperature elevated ({puv.temp}°C)</Text>
             </View>
           )}
-          <Text style={styles.lastUpdate}>Last updated: {puv.last_update}</Text>
+          <Text style={styles.lastUpdate}>Sensor reading: {show(puv.last_update)}</Text>
         </View>
 
         {/* REPORT BUTTON */}
@@ -135,7 +145,8 @@ export default function PuvDetailScreen({ route, navigation }) {
           onPress={() => navigation.navigate('Complaint', { plate: puv.plate, puv })}
           activeOpacity={0.85}
         >
-          <Text style={styles.reportText}>📢  Report a Violation</Text>
+          <Icon name="megaphone-outline" size={19} color="#fff" />
+          <Text style={styles.reportText}>Report a Violation</Text>
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
@@ -146,8 +157,11 @@ export default function PuvDetailScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
-  splash: { flex: 1, backgroundColor: COLORS.pageBg, justifyContent: 'center', alignItems: 'center' },
-  splashText: { marginTop: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 15 },
+  splash: { flex: 1, backgroundColor: COLORS.pageBg, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  splashTitle: { fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
+  splashText: { marginTop: 4, marginBottom: 16, fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 15, color: COLORS.textSecondary, textAlign: 'center' },
+  smallBtn:     { borderRadius: RADIUS.md, paddingHorizontal: 24, paddingVertical: 10 },
+  smallBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 14 },
   scroll: { padding: 16 },
 
   header:      { backgroundColor: COLORS.dark, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 3, borderBottomColor: T.primary },
@@ -173,6 +187,6 @@ const styles = StyleSheet.create({
   statusText:{ fontSize: 13, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', flex: 1 },
   lastUpdate:{ fontSize: 11, color: COLORS.textMuted, marginTop: 12, fontFamily: 'Outfit_Regular', fontWeight: '500', paddingHorizontal: 18, paddingBottom: 18 },
 
-  reportBtn:  { borderRadius: RADIUS.lg, height: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
+  reportBtn:  { borderRadius: RADIUS.lg, height: 56, flexDirection: 'row', gap: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },
   reportText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 });

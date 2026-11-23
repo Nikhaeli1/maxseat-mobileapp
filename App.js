@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Animated } from 'react-native';
 import RoleSwitchOverlay from './src/components/RoleSwitchOverlay';
+import { ToastHost } from './src/components/Toast';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Font from 'expo-font';
@@ -124,7 +125,8 @@ export default function App() {
       .catch(() => setFontsLoaded(true));  // fall back to system font if anything fails
   }, []);
 
-  if (!fontsLoaded) return null;
+  // Same color as the launch screen, so there's no white flash while fonts load
+  if (!fontsLoaded) return <View style={styles.splash} />;
 
   return (
     <AuthProvider>
@@ -136,6 +138,7 @@ export default function App() {
           <RootNavigator />
         </TutorialProvider>
         <RoleSwitchHost />
+        <ToastHost />
       </View>
     </AuthProvider>
   );

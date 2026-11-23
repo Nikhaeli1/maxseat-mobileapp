@@ -2,9 +2,13 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, StatusBar, Alert, ActivityIndicator,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { updatePassengerProfile, changePassengerPassword } from '../../api/apiService';
+import { friendlyError } from '../../api/errors';
+import { showToast } from '../../components/Toast';
+import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
@@ -12,7 +16,7 @@ import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 const T = ROLE.passenger;
 
 export default function ProfileScreen() {
-  const { user, logout, switchRole, requestDashTutorial } = useAuth();
+  const { user, logout, switchRole, requestDashTutorial, updateUser } = useAuth();
   const navigation = useNavigation();
 
   // The tutorial highlights elements on the Home tab, so jump there first —
@@ -32,13 +36,18 @@ export default function ProfileScreen() {
 
   useFocusEffect(useCallback(() => { setMobile(user?.mobile || ''); }, [user]));
 
+  const mobileChanged = mobile.trim() !== (user?.mobile || '').trim();
+
   const handleSave = async () => {
+    if (!mobileChanged) return;
     setSaving(true);
     try {
-      await updatePassengerProfile({ mobile });
-      Alert.alert('Saved', 'Profile updated successfully.');
+      const res = await updatePassengerProfile({ mobile: mobile.trim() });
+      // Keep the new number on this phone too, so it's still there next time
+      await updateUser({ mobile: res?.mobile ?? mobile.trim() });
+      showToast('Mobile number saved');
     } catch (err) {
-      Alert.alert('Error', err?.response?.data?.error || 'Could not save profile.');
+      Alert.alert("Couldn't save", friendlyError(err, 'Could not save profile.'));
     } finally {
       setSaving(false);
     }
@@ -51,11 +60,11 @@ export default function ProfileScreen() {
     setPwSaving(true);
     try {
       await changePassengerPassword({ current_password: currentPw, new_password: newPw });
-      Alert.alert('Password Changed', 'Your password has been updated.');
+      showToast('Password updated');
       setShowPwForm(false);
       setCurrentPw(''); setNewPw(''); setConfirmPw('');
     } catch (err) {
-      Alert.alert('Error', err?.response?.data?.error || 'Could not change password.');
+      Alert.alert("Couldn't change password", friendlyError(err, 'Could not change password.'));
     } finally {
       setPwSaving(false);
     }
@@ -74,7 +83,7 @@ export default function ProfileScreen() {
     ]);
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
 
       {/* HEADER */}
@@ -121,7 +130,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionLabel}>Edit Profile</Text>
           <Text style={styles.fieldLabel}>Mobile Number</Text>
           <View style={styles.inputWrap}>
-            <Text style={styles.inputIcon}></Text>
+            <Icon name="call-outline" size={17} color={COLORS.textMuted} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               value={mobile}
@@ -129,16 +138,19 @@ export default function ProfileScreen() {
               placeholder="e.g. 09171234567"
               placeholderTextColor={COLORS.textMuted}
               keyboardType="phone-pad"
+              maxLength={13}
+              returnKeyType="done"
+              onSubmitEditing={handleSave}
             />
           </View>
           <TouchableOpacity
-            style={[styles.saveBtn, { backgroundColor: COLORS.dark }, saving && { opacity: 0.6 }]}
+            style={[styles.saveBtn, { backgroundColor: COLORS.dark }, (saving || !mobileChanged) && { opacity: 0.45 }]}
             onPress={handleSave}
-            disabled={saving}
+            disabled={saving || !mobileChanged}
           >
             {saving
               ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.saveBtnText}>Save Changes</Text>
+              : <Text style={styles.saveBtnText}>{mobileChanged ? 'Save Changes' : 'No changes'}</Text>
             }
           </TouchableOpacity>
         </View>
@@ -147,7 +159,7 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <TouchableOpacity style={styles.pwToggleRow} onPress={() => setShowPwForm(v => !v)}>
             <Text style={styles.sectionLabel}>Change Password</Text>
-            <Text style={styles.pwToggleIcon}>{showPwForm ? '▲' : '▼'}</Text>
+            <Icon name={showPwForm ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.textSecondary} />
           </TouchableOpacity>
           {showPwForm && (
             <View style={{ marginTop: 12 }}>
@@ -165,9 +177,18 @@ export default function ProfileScreen() {
                     secureTextEntry
                     placeholder="••••••••"
                     placeholderTextColor={COLORS.textMuted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                   />
                 </View>
               ))}
+              {confirmPw.length > 0 && (
+                <Text style={[styles.pwHint, newPw === confirmPw && newPw.length >= 6 && { color: COLORS.primary }]}>
+                  {newPw.length < 6
+                    ? 'New password needs at least 6 characters'
+                    : newPw === confirmPw ? 'Passwords match' : "Passwords don't match yet"}
+                </Text>
+              )}
               <TouchableOpacity
                 style={[styles.saveBtn, { backgroundColor: COLORS.dark }, pwSaving && { opacity: 0.6 }]}
                 onPress={handleChangePassword}
@@ -188,7 +209,7 @@ export default function ProfileScreen() {
           onPress={handleReplayTutorial}
           activeOpacity={0.85}
         >
-          <Text style={styles.tutorialIcon}>▶</Text>
+          <Icon name="play-circle-outline" size={24} color={COLORS.primary} style={styles.tutorialIcon} />
           <View>
             <Text style={styles.tutorialLabel}>Replay Tutorial</Text>
             <Text style={styles.tutorialDesc}>Watch the app walkthrough again</Text>
@@ -205,14 +226,14 @@ export default function ProfileScreen() {
 
         {/* LOGOUT */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.85}>
-          <Text style={styles.logoutIcon}>⏻</Text>
+          <Icon name="log-out-outline" size={20} color={COLORS.danger} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
         <Text style={styles.footer}>MaxSeat Alert System · Cagayan de Oro City</Text>
         <View style={{ height: 32 }} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -239,13 +260,14 @@ const styles = StyleSheet.create({
 
   fieldLabel: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, color: COLORS.textSecondary, marginBottom: 7 },
   inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 12, height: 50 },
-  inputIcon:  { fontSize: 16, marginRight: 8 },
+  inputIcon:  { marginRight: 8 },
   input:      { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   textInput:  { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, backgroundColor: COLORS.pageBg, paddingHorizontal: 14, height: 50, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Outfit_Regular', fontWeight: '500' },
 
   saveBtn:     { borderRadius: RADIUS.md, height: 48, justifyContent: 'center', alignItems: 'center', marginTop: 16 },
   saveBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
+  pwHint:      { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: -4 },
   pwToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   pwToggleIcon:{ fontSize: 13, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, RADIUS , FONTS} from '../theme';
 import BusSeats from './BusSeats';
+import AnimatedBar from './AnimatedBar';
 
 export default function CapacityMeter({ passengers, capacity, loadPct }) {
   const pct      = Math.min(loadPct, 100);
@@ -21,8 +22,8 @@ export default function CapacityMeter({ passengers, capacity, loadPct }) {
         <Text style={styles.unit}> pax</Text>
       </View>
 
-      <View style={styles.barBg}>
-        <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+      <View style={styles.barWrap}>
+        <AnimatedBar pct={pct} color={barColor} track="rgba(255,255,255,0.6)" height={10} />
       </View>
 
       <View style={styles.statusRow}>
@@ -46,8 +47,7 @@ const styles = StyleSheet.create({
   slash:     { fontSize: 28, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '300', paddingBottom: 6 },
   capCount:  { fontSize: 28, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', paddingBottom: 6 },
   unit:      { fontSize: 14, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', paddingBottom: 8 },
-  barBg:     { height: 10, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 5, marginBottom: 10, overflow: 'hidden' },
-  barFill:   { height: 10, borderRadius: 5 },
+  barWrap:   { marginBottom: 10 },
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   cabin:     { alignItems: 'center', paddingTop: 4 },
   pill:      { borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1 },

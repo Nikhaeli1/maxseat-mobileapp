@@ -25,6 +25,7 @@ import {
   StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { COLORS, RADIUS, FONTS, IS_DARK } from '../theme';
+import Icon from './Icon';
 
 const WIN = Dimensions.get('window');
 
@@ -240,7 +241,7 @@ export default function TutorialOverlay({
             <View style={styles.topRow}>
               <Text style={[styles.counter, { color: muted }]}>{idx + 1} of {steps.length}</Text>
               <TouchableOpacity onPress={finish} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityLabel="Close tour">
-                <Text style={[styles.close, { color: muted }]}>✕</Text>
+                <Icon name="close" size={20} color={muted} />
               </TouchableOpacity>
             </View>
 
@@ -251,7 +252,7 @@ export default function TutorialOverlay({
             <View style={styles.body}>
               {step.icon ? (
                 <View style={[styles.iconTile, { backgroundColor: IS_DARK ? 'rgba(198,242,78,0.14)' : '#EEF5F1' }]}>
-                  <Text style={styles.iconTxt}>{step.icon}</Text>
+                  <Icon name={step.icon} size={22} color={IS_DARK ? '#C6F24E' : (accentColor || '#2F6F5A')} />
                 </View>
               ) : null}
               <View style={{ flex: 1 }}>

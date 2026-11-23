@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#2F6F5A"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,6 +30,12 @@
         "NSLocationWhenInUseUsageDescription": "MaxSeat shows your location on the PUV map so you can find nearby vehicles."
       }
     },
-    "plugins": []
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "9b4b5687-311f-49b8-80ed-9411d1dfb185"
+      }
+    },
+    "owner": "nikhaeli"
   }
 }

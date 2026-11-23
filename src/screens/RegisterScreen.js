@@ -21,12 +21,19 @@ export default function RegisterScreen({ navigation }) {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 350, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 80, friction: 10, useNativeDriver: true }),
+      // JS-driven: typing re-renders this screen, and on the new Android
+      // architecture a native-driven opacity can be reset to 0 by a re-render.
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 350, useNativeDriver: false }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 80, friction: 10, useNativeDriver: false }),
     ]).start();
+    const t = setTimeout(() => { fadeAnim.setValue(1); slideAnim.setValue(0); }, 1200);   // never leave the form faded
+    return () => clearTimeout(t);
   }, []);
 
-  const set = (key) => (val) => setForm(f => ({ ...f, [key]: val }));
+  // "Next" on the keyboard moves to the next box; "Done" on the last one submits
+  const inputs = useRef({});
+
+  const set = (key) => (val) => { setForm(f => ({ ...f, [key]: val })); if (error) setError(''); };
 
   const validate = () => {
     if (!form.full_name.trim())  return 'Full name is required.';
@@ -96,7 +103,7 @@ export default function RegisterScreen({ navigation }) {
             <Text style={styles.cardTitle}>Create Account</Text>
 
             {/* Fields */}
-            {FIELDS.map(({ key, label, placeholder, secure, keyboard }) => (
+            {FIELDS.map(({ key, label, placeholder, secure, keyboard }, i) => (
               <View key={key} style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{label}</Text>
                 <View style={[
@@ -104,8 +111,17 @@ export default function RegisterScreen({ navigation }) {
                   form[key] && { borderColor: COLORS.primary },
                 ]}>
                   <TextInput
+                    ref={(r) => { inputs.current[key] = r; }}
                     style={styles.input}
                     value={form[key]}
+                    returnKeyType={i < FIELDS.length - 1 ? 'next' : 'done'}
+                    blurOnSubmit={i === FIELDS.length - 1}
+                    onSubmitEditing={() => {
+                      const next = FIELDS[i + 1];
+                      if (next) inputs.current[next.key]?.focus();
+                      else handleRegister();
+                    }}
+                    maxLength={key === 'mobile' ? 13 : 60}
                     onChangeText={set(key)}
                     placeholder={placeholder}
                     placeholderTextColor={COLORS.textMuted}

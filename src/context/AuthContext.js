@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  loginEnforcer, logoutEnforcer, saveToken, getToken,
-  loginPassenger, logoutPassenger, registerPassenger,
+  loginEnforcer, logoutEnforcer, saveToken, getToken, clearToken,
+  loginPassenger, logoutPassenger, registerPassenger, setUnauthorizedHandler,
 } from '../api/apiService';
 
 const AuthContext = createContext(null);
@@ -10,6 +11,10 @@ const AuthContext = createContext(null);
 const USER_KEY        = '@maxseat_user';
 const LAST_ROLE_KEY   = '@maxseat_last_role';
 const ONBOARDING_KEY  = (role) => `@maxseat_onboarding_v3_${role}`;
+const LAST_USERNAME_KEY = (role) => `@maxseat_last_username_${role}`;
+
+// Last username used for a role, so the sign-in form can fill it in.
+export const getLastUsername = (role) => AsyncStorage.getItem(LAST_USERNAME_KEY(role)).catch(() => null);
 
 export const AuthProvider = ({ children }) => {
   const [user,          setUser]          = useState(null);   // includes .role
@@ -50,6 +55,7 @@ export const AuthProvider = ({ children }) => {
 
     await saveToken(data.token);
     await AsyncStorage.setItem(LAST_ROLE_KEY, role);
+    AsyncStorage.setItem(LAST_USERNAME_KEY(role), username).catch(() => {});
 
     const profile = { ...data, role };
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(profile));
@@ -66,6 +72,7 @@ export const AuthProvider = ({ children }) => {
     const data = await registerPassenger({ username, password, full_name, mobile });
     await saveToken(data.token);
     await AsyncStorage.setItem(LAST_ROLE_KEY, 'passenger');
+    AsyncStorage.setItem(LAST_USERNAME_KEY('passenger'), username).catch(() => {});
     const profile = { ...data, role: 'passenger' };
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(profile));
     setUser(profile);
@@ -73,6 +80,38 @@ export const AuthProvider = ({ children }) => {
     // New passengers always see onboarding
     setShowOnboarding(true);
   };
+
+  // ── Session expired (any 401 from the server) ─────────────────────────────
+  // Signs out locally once and says why, instead of every screen showing
+  // its own error. Registered once; reads the latest user through a ref.
+  const userRef = useRef(null);
+  userRef.current = user;
+  useEffect(() => {
+    let busy = false;
+    setUnauthorizedHandler(async () => {
+      if (busy || !userRef.current) return;
+      busy = true;
+      try {
+        await clearToken();
+        await AsyncStorage.removeItem(USER_KEY);
+        setPendingRole(userRef.current.role);
+      } catch (_) {}
+      setUser(null);
+      Alert.alert('Session expired', 'Please sign in again.');
+      setTimeout(() => { busy = false; }, 3000);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
+  // ── Update saved user details (e.g. after editing the profile) ────────────
+  const updateUser = useCallback(async (patch) => {
+    setUser((u) => {
+      if (!u) return u;
+      const next = { ...u, ...patch };
+      AsyncStorage.setItem(USER_KEY, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
+  }, []);
 
   // ── Complete onboarding ────────────────────────────────────────────────────
   const completeOnboarding = async (role) => {
@@ -129,7 +168,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      user, loading, login, register, logout, switchRole, roleSwitch,
+      user, loading, login, register, logout, switchRole, roleSwitch, updateUser,
       pendingRole, setPendingRole,
       showOnboarding, completeOnboarding, replayOnboarding,
       dashTutorialRequest, requestDashTutorial, clearDashTutorialRequest,

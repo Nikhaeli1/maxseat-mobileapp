@@ -6,14 +6,15 @@ import MapScreen       from '../screens/passenger/MapScreen';
 import MyReportsScreen from '../screens/passenger/MyReportsScreen';
 import ProfileScreen   from '../screens/passenger/ProfileScreen';
 import { COLORS, ROLE , FONTS} from '../theme';
+import Icon from '../components/Icon';
 
 const Tab = createBottomTabNavigator();
 const T   = ROLE.passenger;
 
-function TabIcon({ icon, focused, label }) {
+function TabIcon({ icon, focused, color }) {
   return (
-    <View style={[tabStyles.iconWrap, focused && { backgroundColor: T.primary + '18' }]}>
-      <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4 }}>{icon}</Text>
+    <View style={[tabStyles.iconWrap, focused && { backgroundColor: 'rgba(198,242,78,0.16)' }]}>
+      <Icon name={focused ? icon : `${icon}-outline`} size={21} color={color} />
     </View>
   );
 }
@@ -35,8 +36,9 @@ export default function PassengerTabs() {
           paddingBottom:    10,
           paddingTop:       6,
         },
-        tabBarActiveTintColor:   T.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
+        // Lime + white on the green bar (green-on-green was hard to see)
+        tabBarActiveTintColor:   COLORS.alert,
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.7)',
         tabBarLabelStyle:        { fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
       }}
     >
@@ -45,7 +47,7 @@ export default function PassengerTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'PUVs',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🚌" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="bus" focused={focused} color={color} />,
         }}
       />
       <Tab.Screen
@@ -53,7 +55,7 @@ export default function PassengerTabs() {
         component={MapScreen}
         options={{
           tabBarLabel: 'Live Map',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🗺" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="map" focused={focused} color={color} />,
         }}
       />
       <Tab.Screen
@@ -61,7 +63,7 @@ export default function PassengerTabs() {
         component={MyReportsScreen}
         options={{
           tabBarLabel: 'My Reports',
-          tabBarIcon: ({ focused }) => <TabIcon icon="📢" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="megaphone" focused={focused} color={color} />,
         }}
       />
       <Tab.Screen
@@ -69,7 +71,7 @@ export default function PassengerTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="person" focused={focused} color={color} />,
         }}
       />
     </Tab.Navigator>

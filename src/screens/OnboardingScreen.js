@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK } from '../theme';
 import BusSeats from '../components/BusSeats';
+import Icon from '../components/Icon';
 import Logo from '../components/Logo';
 
 const W = Dimensions.get('window').width;
@@ -81,7 +82,7 @@ function Chip({ label, kind }) {
 function Feature({ icon, label }) {
   return (
     <View style={ui.feature}>
-      <Text style={ui.featureIcon}>{icon}</Text>
+      <Icon name={icon} size={24} color={COLORS.primary} style={ui.featureIcon} />
       <Text style={ui.featureTxt}>{label}</Text>
     </View>
   );
@@ -95,9 +96,9 @@ function P_Welcome() {
       <Logo size="full" />
       <Text style={ui.route}>Bugo – Igpit</Text>
       <View style={ui.featureRow}>
-        <Feature icon="🪑" label="Live seats" />
-        <Feature icon="🗺" label="Live map" />
-        <Feature icon="📣" label="Report" />
+        <Feature icon="people-outline" label="Live seats" />
+        <Feature icon="map-outline" label="Live map" />
+        <Feature icon="megaphone-outline" label="Report" />
       </View>
     </Stage>
   );
@@ -216,13 +217,13 @@ function P_Profile() {
         </View>
       </View>
       {[
-        ['🌗', 'Dark mode follows your phone'],
-        ['🛡', 'Switch to Enforcer mode'],
-        ['▶', 'Replay this guide'],
-        ['⏻', 'Log out'],
+        ['contrast-outline', 'Dark mode follows your phone'],
+        ['shield-checkmark-outline', 'Switch to Enforcer mode'],
+        ['play-circle-outline', 'Replay this guide'],
+        ['log-out-outline', 'Log out'],
       ].map(([icon, label]) => (
         <View key={label} style={ui.menuRow}>
-          <Text style={ui.menuIcon}>{icon}</Text>
+          <Icon name={icon} size={18} color={COLORS.primary} style={ui.menuIcon} />
           <Text style={ui.menuTxt}>{label}</Text>
         </View>
       ))}
@@ -238,9 +239,9 @@ function E_Welcome() {
       <Logo size="full" />
       <Text style={ui.route}>Enforcer · Bugo – Igpit</Text>
       <View style={ui.featureRow}>
-        <Feature icon="🛡" label="Dispatch" />
-        <Feature icon="🚌" label="Live cabin" />
-        <Feature icon="📝" label="Log action" />
+        <Feature icon="shield-checkmark-outline" label="Dispatch" />
+        <Feature icon="bus-outline" label="Live cabin" />
+        <Feature icon="create-outline" label="Log action" />
       </View>
     </Stage>
   );
@@ -310,7 +311,7 @@ function E_Action() {
       ))}
       <View style={{ alignItems: 'center', marginTop: 6, height: 34, justifyContent: 'center' }}>
         <Animated.View style={[ui.logged, { transform: [{ scale: stamp.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }]}>
-          <Text style={ui.loggedTxt}>✓  Response logged</Text>
+          <Text style={ui.loggedTxt}>Response logged</Text>
         </Animated.View>
       </View>
     </Stage>
@@ -356,13 +357,13 @@ function E_Habits() {
   return (
     <Stage>
       {[
-        ['📝', 'Log every response', 'Complete records protect you and the riders'],
-        ['🔄', 'Refresh often', 'Pull down on the list for the latest data'],
-        ['🗺', 'Use the map', 'Spot flagged PUVs near you fast'],
-        ['⏻', 'Log out after your shift', 'Keeps dispatch records accurate'],
+        ['create-outline', 'Log every response', 'Complete records protect you and the riders'],
+        ['refresh-outline', 'Refresh often', 'The list also updates by itself every few seconds'],
+        ['map-outline', 'Use the map', 'Spot flagged PUVs near you fast'],
+        ['log-out-outline', 'Log out after your shift', 'Keeps dispatch records accurate'],
       ].map(([icon, t, sub]) => (
         <View key={t} style={ui.menuRow}>
-          <Text style={ui.menuIcon}>{icon}</Text>
+          <Icon name={icon} size={18} color={COLORS.primary} style={ui.menuIcon} />
           <View style={{ flex: 1 }}>
             <Text style={ui.optionTxt}>{t}</Text>
             <Text style={ui.small}>{sub}</Text>
@@ -438,7 +439,7 @@ export default function OnboardingScreen() {
 
       <View style={styles.topBar}>
         <View style={styles.rolePill}>
-          <Text style={styles.rolePillTxt}>{role === 'enforcer' ? '🛡  Enforcer' : '🚌  Passenger'}</Text>
+          <Text style={styles.rolePillTxt}>{role === 'enforcer' ? 'Enforcer' : 'Passenger'}</Text>
         </View>
         {!isLast ? (
           <TouchableOpacity onPress={finish} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
@@ -489,7 +490,7 @@ const ui = StyleSheet.create({
   route:      { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
   featureRow: { flexDirection: 'row', gap: 10 },
   feature:    { alignItems: 'center', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, paddingVertical: 12, width: (W - 48 - 32 - 20) / 3 },
-  featureIcon:{ fontSize: 22, marginBottom: 6 },
+  featureIcon:{ marginBottom: 6 },
   featureTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
   kicker:  { fontSize: 11, fontFamily: FONTS.extraBold, letterSpacing: 1, color: COLORS.textSecondary },
@@ -526,7 +527,7 @@ const ui = StyleSheet.create({
   avatar:    { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
   menuRow:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: COLORS.borderLight },
-  menuIcon:  { width: 22, fontSize: 15, textAlign: 'center' },
+  menuIcon:  { width: 22, textAlign: 'center' },
   menuTxt:   { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
   order:     { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8, borderWidth: 1.5, borderColor: COLORS.pageBg },
@@ -545,7 +546,7 @@ const ui = StyleSheet.create({
 const styles = StyleSheet.create({
   root:      { flex: 1, backgroundColor: COLORS.pageBg },
   topBar:    { paddingTop: 52, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  rolePill:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
+  rolePill:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
   rolePillTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
   skip:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
 

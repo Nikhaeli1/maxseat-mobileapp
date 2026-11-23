@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, Alert, ActivityIndicator, StatusBar,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import LeafletMap from '../../components/LeafletMap';
 import { submitInterception } from '../../api/apiService';
+import { friendlyError } from '../../api/errors';
+import Icon from '../../components/Icon';
 import BusSeats from '../../components/BusSeats';
 import StatusBadge from '../../components/StatusBadge';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
 
 const T = ROLE.enforcer;
+const MAX_NOTES = 1000;
 
 const ACTIONS = [
-  { key: 'warning',   label: 'Issue Warning',     icon: '⚠',  desc: 'Verbal or written warning — no fine', color: COLORS.warning },
-  { key: 'ticket',    label: 'Issue Ticket',       icon: '📋', desc: 'Formal citation — ₱5,000.00 fine',   color: COLORS.danger  },
-  { key: 'apprehend', label: 'Apprehend Vehicle',  icon: '🚔', desc: 'Full apprehension — ₱10,000.00 fine', color: COLORS.primary    },
+  { key: 'warning',   label: 'Issue Warning',     icon: 'warning-outline',  desc: 'Verbal or written warning, no fine', color: COLORS.warning },
+  { key: 'ticket',    label: 'Issue Ticket',       icon: 'document-text-outline', desc: 'Formal citation, ₱5,000.00 fine',   color: COLORS.danger  },
+  { key: 'apprehend', label: 'Apprehend Vehicle',  icon: 'car-outline', desc: 'Full apprehension, ₱10,000.00 fine', color: COLORS.primary    },
 ];
 
 export default function ActionScreen({ route, navigation }) {
@@ -22,8 +26,23 @@ export default function ActionScreen({ route, navigation }) {
   const [action, setAction] = useState('');
   const [notes,  setNotes]  = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const sent = useRef(false);
 
-  const isCritical = order.violations.some(v => v.severity === 'critical');
+  const isCritical = (order.violations || []).some(v => v.severity === 'critical');
+
+  // Don't lose a half-filled report to an accidental back swipe
+  const dirty = !!action || notes.trim().length > 0;
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (!dirty || sent.current) return;
+      e.preventDefault();
+      Alert.alert('Discard this report?', "It hasn't been submitted yet.", [
+        { text: 'Keep editing', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: () => navigation.dispatch(e.data.action) },
+      ]);
+    });
+    return unsub;
+  }, [navigation, dirty]);
 
   const handleSubmit = async () => {
     if (!action) {
@@ -42,14 +61,15 @@ export default function ActionScreen({ route, navigation }) {
           onPress: async () => {
             setSubmitting(true);
             try {
-              const result = await submitInterception(order.plate, action, notes);
+              const result = await submitInterception(order.plate, action, notes.trim());
+              sent.current = true;
               Alert.alert(
-                '✅ Report Submitted',
+                'Report submitted',
                 `${result.message}\n\nSerial: ${result.serial}`,
                 [{ text: 'OK', onPress: () => navigation.goBack() }]
               );
             } catch (err) {
-              Alert.alert('Error', err?.response?.data?.error || err.message || 'Submission failed.');
+              Alert.alert("Couldn't submit", friendlyError(err, 'Submission failed. Please try again.'));
             } finally {
               setSubmitting(false);
             }
@@ -60,13 +80,13 @@ export default function ActionScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityLabel="Back" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Icon name="chevron-back" size={22} color={COLORS.textOnDark} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerPlate}>{order.plate}</Text>
@@ -80,16 +100,16 @@ export default function ActionScreen({ route, navigation }) {
       {/* Red critical strip */}
       {isCritical && (
         <View style={styles.criticalStrip}>
-          <Text style={styles.criticalStripText}>🚨 CRITICAL VIOLATION — IMMEDIATE ACTION REQUIRED</Text>
+          <Text style={styles.criticalStripText}>CRITICAL VIOLATION · ACT NOW</Text>
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
 
         {/* ── MAP ─────────────────────────────────────────────────────── */}
         <View style={styles.mapCard}>
           <View style={styles.mapLabelRow}>
-            <Text style={styles.sectionLabel}>📍 Live GNSS Location</Text>
+            <Text style={styles.sectionLabel}>Live GNSS Location</Text>
             <Text style={styles.mapLocText}>{order.loc_name}</Text>
           </View>
           <LeafletMap
@@ -118,7 +138,7 @@ export default function ActionScreen({ route, navigation }) {
 
         {/* ── VEHICLE INFO ─────────────────────────────────────────────── */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>🚌 Vehicle Info</Text>
+          <Text style={styles.sectionLabel}>Vehicle Info</Text>
           <View style={styles.infoGrid}>
             {[
               ['Plate',      order.plate],
@@ -142,7 +162,7 @@ export default function ActionScreen({ route, navigation }) {
           </View>
 
           <View style={styles.divider} />
-          <Text style={styles.sectionLabel}>⚠ Active Violations</Text>
+          <Text style={styles.sectionLabel}>Active Violations</Text>
           {order.violations.map((v, i) => (
             <View key={i} style={[styles.violationRow, { borderLeftColor: v.severity === 'critical' ? COLORS.danger : COLORS.warning }]}>
               <StatusBadge type={v.type} />
@@ -162,7 +182,7 @@ export default function ActionScreen({ route, navigation }) {
               onPress={() => setAction(a.key)}
               activeOpacity={0.8}
             >
-              <Text style={styles.actionIcon}>{a.icon}</Text>
+              <Icon name={a.icon} size={22} color={action === a.key ? a.color : COLORS.textSecondary} style={styles.actionIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.actionLabel, action === a.key && { color: a.color }]}>
                   {a.label}
@@ -178,17 +198,19 @@ export default function ActionScreen({ route, navigation }) {
 
         {/* ── OFFICER REMARKS ──────────────────────────────────────────── */}
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>📝 Officer Remarks</Text>
+          <Text style={styles.sectionLabel}>Officer Remarks</Text>
           <TextInput
             style={styles.notesInput}
-            placeholder="Describe the interception — exact location, officer notes, passenger count, driver response…"
+            placeholder="Exact location, officer notes, passenger count, driver response"
             placeholderTextColor={COLORS.textMuted}
             value={notes}
             onChangeText={setNotes}
             multiline
             numberOfLines={5}
+            maxLength={MAX_NOTES}
             textAlignVertical="top"
           />
+          <Text style={styles.counter}>{notes.length}/{MAX_NOTES}</Text>
         </View>
 
         {/* ── SUBMIT ───────────────────────────────────────────────────── */}
@@ -200,13 +222,13 @@ export default function ActionScreen({ route, navigation }) {
         >
           {submitting
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.submitText}>📤  Submit Interception Report</Text>
+            : <Text style={styles.submitText}>Submit Interception Report</Text>
           }
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -245,12 +267,13 @@ const styles = StyleSheet.create({
   violationDetail:{ flex: 1, fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', lineHeight: 17 },
 
   actionOption:   { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, marginBottom: 10, backgroundColor: COLORS.pageBg },
-  actionIcon:     { fontSize: 22 },
+  actionIcon:     { width: 24, textAlign: 'center' },
   actionLabel:    { fontSize: 14, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
   actionDesc:     { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '500' },
   radio:          { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
   radioDot:       { width: 11, height: 11, borderRadius: 6 },
 
+  counter:      { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', textAlign: 'right', marginTop: 6 },
   notesInput:   { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 14, fontSize: 14, color: COLORS.textPrimary, backgroundColor: COLORS.pageBg, minHeight: 110, fontFamily: 'Outfit_Regular', fontWeight: '500' },
 
   submitBtn:    { borderRadius: RADIUS.lg, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 6, ...SHADOW.button, shadowColor: T.primary },

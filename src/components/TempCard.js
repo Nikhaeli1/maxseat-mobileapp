@@ -6,17 +6,16 @@ export default function TempCard({ temp, hot }) {
   const color     = hot ? COLORS.warning   : COLORS.success;
   const bgColor   = hot ? COLORS.warningBg        : COLORS.hoverBg;
   const label     = hot ? 'HIGH TEMP'      : 'NORMAL';
-  const icon      = hot ? '🌡'            : '❄';
   const textColor = hot ? COLORS.danger        : COLORS.success;
 
   return (
     <View style={[styles.card, { backgroundColor: bgColor }]}>
       <View style={styles.row}>
         <View style={styles.left}>
-          <Text style={styles.sectionLabel}>🌡 Cabin Temperature</Text>
+          <Text style={styles.sectionLabel}>Cabin Temperature</Text>
           <Text style={[styles.tempValue, { color }]}>{temp}°C</Text>
           <View style={[styles.pill, { backgroundColor: color + '22', borderColor: color + '55' }]}>
-            <Text style={[styles.pillText, { color }]}>{icon} {label}</Text>
+            <Text style={[styles.pillText, { color }]}>{label}</Text>
           </View>
         </View>
         <View style={styles.right}>
@@ -36,7 +35,7 @@ export default function TempCard({ temp, hot }) {
       </View>
       {hot && (
         <Text style={[styles.warning, { color: textColor }]}>
-          ⚠ Cabin temperature exceeds safe limit (37.5°C). Passengers may be at risk.
+          Cabin temperature is above the safe limit (37.5°C). Passengers may be at risk.
         </Text>
       )}
     </View>

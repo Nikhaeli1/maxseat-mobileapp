@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, RefreshControl, StatusBar, Alert, Dimensions,
+  RefreshControl, StatusBar, Alert, Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LeafletMap from '../../components/LeafletMap';
@@ -10,6 +10,10 @@ import { fetchDispatchOrders } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
 import ViolationCard from '../../components/ViolationCard';
 import AnimatedListItem from '../../components/AnimatedListItem';
+import SkeletonList from '../../components/Skeleton';
+import ErrorBanner from '../../components/ErrorBanner';
+import LiveStamp from '../../components/LiveStamp';
+import useLiveData from '../../hooks/useLiveData';
 import Logo from '../../components/Logo';
 import { useTutorial } from '../../context/TutorialContext';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
@@ -21,10 +25,18 @@ const DASH_TUTORIAL_KEY = '@maxseat_dash_tutorial_enforcer_v2';
 export default function DispatchScreen({ navigation }) {
   const { user, logout, switchRole } = useAuth();
   const { startTutorial, stopTutorial } = useTutorial();
-  const [orders,     setOrders]      = useState([]);
-  const [loading,    setLoading]     = useState(true);
-  const [refreshing, setRefreshing]  = useState(false);
   const [view,       setView]        = useState('list');
+  const [mapOpened,  setMapOpened]   = useState(false);   // keep the map alive once opened
+  useEffect(() => { if (view === 'map') setMapOpened(true); }, [view]);
+
+  // Live board: refreshes on focus and every 15 s. Critical ones first.
+  const live    = useLiveData(fetchDispatchOrders, { interval: 15000 });
+  const loading = live.loading;
+  const orders  = useMemo(() => {
+    const list = [...(live.data?.dispatch_orders || [])];
+    const crit = (o) => ((o.violations || []).some(v => v.severity === 'critical') ? 0 : 1);
+    return list.map((o, i) => [o, i]).sort((a, b) => crit(a[0]) - crit(b[0]) || a[1] - b[1]).map(([o]) => o);
+  }, [live.data]);
 
 
   // Refs for coach-mark spotlight
@@ -37,48 +49,30 @@ export default function DispatchScreen({ navigation }) {
   const tutorialSteps = useRef([
     {
       targetRef: topBarRef,
-      icon: '🛡',
+      icon: 'shield-checkmark-outline',
       title: 'Your dispatch board',
       desc: 'All active violations on the route. Critical ones are marked in solid lime.',
     },
     {
       targetRef: toggleRef,
-      icon: '🗺',
+      icon: 'map-outline',
       title: 'List or map',
       desc: 'List sorts violations by how serious they are. Map shows every flagged PUV live.',
     },
     {
       targetRef: listRef,
-      icon: '⚠',
+      icon: 'alert-circle-outline',
       title: 'Respond to a violation',
       desc: 'Tap a card to see the live cabin view, then log a warning, ticket or hold.',
     },
     {
       targetRef: actionsRef,
-      icon: '⚡',
+      icon: 'flash-outline',
       title: 'Quick actions',
       desc: 'Replay this tour, switch to Passenger mode, or log out when your shift ends.',
     },
   ]).current;
 
-  const load = useCallback(async (isRefresh = false) => {
-    isRefresh ? setRefreshing(true) : setLoading(true);
-    try {
-      const data = await fetchDispatchOrders();
-      setOrders(data.dispatch_orders || []);   // the map zooms to the vehicles by itself
-    } catch (err) {
-      if (err?.response?.status === 401) {
-        Alert.alert('Session Expired', 'Please log in again.', [{ text: 'OK', onPress: logout }]);
-      } else {
-        Alert.alert('Error', 'Could not fetch dispatch orders. Check your connection.');
-      }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [logout]);
-
-  // Load data on focus
   const mapMarkers = useMemo(() => orders.map(item => {
     const isCritical = (item.violations || []).some(v => v.severity === 'critical');
     return {
@@ -91,14 +85,12 @@ export default function DispatchScreen({ navigation }) {
       title:  item.plate,
       lines:  [
         item.company,
-        `📍 ${item.loc_name || '—'}`,
-        ...(item.violations || []).map(v => ({ text: `⚠ ${v.label}`, tone: v.severity === 'critical' ? 'bad' : 'warn' })),
+        item.loc_name || '—',
+        ...(item.violations || []).map(v => ({ text: v.label, tone: v.severity === 'critical' ? 'bad' : 'warn' })),
       ],
-      cta:    'Respond →',
+      cta:    'Respond',
     };
   }), [orders]);
-
-  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const handleTutorialDone = useCallback(async () => {
     await AsyncStorage.setItem(DASH_TUTORIAL_KEY, '1');
@@ -135,7 +127,7 @@ export default function DispatchScreen({ navigation }) {
       { text: 'Switch', onPress: () => switchRole('passenger') },
     ]);
 
-  const criticalCount = orders.filter(o => o.violations.some(v => v.severity === 'critical')).length;
+  const criticalCount = orders.filter(o => (o.violations || []).some(v => v.severity === 'critical')).length;
 
   return (
     <View style={styles.root}>
@@ -159,6 +151,7 @@ export default function DispatchScreen({ navigation }) {
           <Text style={styles.topSub}>
             {user?.full_name} · {user?.badge || user?.username}
           </Text>
+          <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} style={{ marginTop: 6 }} />
         </View>
         <View ref={actionsRef} style={styles.topActions}>
           {orders.length > 0 && (
@@ -198,61 +191,67 @@ export default function DispatchScreen({ navigation }) {
 
       {/* ── CONTENT AREA — wrapped in listRef for tutorial spotlight ──── */}
       <View ref={listRef} style={{ flex: 1 }}>
-        {/* ── LOADING ─────────────────────────────────────────────────────── */}
-        {loading && (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={T.primary} />
-            <Text style={styles.loadingText}>Fetching dispatch orders…</Text>
-          </View>
+        {live.error && !loading && (
+          <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} style={styles.banner} />
         )}
 
-        {/* ── EMPTY STATE ─────────────────────────────────────────────────── */}
-        {!loading && orders.length === 0 && (
-          <View style={styles.centered}>
-            <Text style={styles.emptyTitle}>All Clear</Text>
-            <Text style={styles.emptySub}>No active violations at this time.</Text>
-            <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: T.primary }]} onPress={() => load(true)}>
-              <Text style={styles.refreshBtnText}>Refresh</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={{ flex: 1 }}>
+          {/* ── LIST VIEW ─────────────────────────────────────────────────── */}
+          <View style={[StyleSheet.absoluteFill, view !== 'list' && styles.hidden]} pointerEvents={view === 'list' ? 'auto' : 'none'}>
+            {loading && <SkeletonList count={3} variant="order" />}
 
-        {/* ── LIST VIEW ───────────────────────────────────────────────────── */}
-        {!loading && view === 'list' && orders.length > 0 && (
-          <FlatList
-            data={orders}
-            keyExtractor={item => String(item.puv_id)}
-            contentContainerStyle={styles.list}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={T.primary} />
-            }
-            renderItem={({ item, index }) => (
-              <AnimatedListItem index={index}>
-                <ViolationCard
-                  order={item}
-                  onPress={() => navigation.navigate('Action', { order: item })}
-                />
-              </AnimatedListItem>
+            {!loading && orders.length === 0 && (
+              <View style={styles.centered}>
+                <Text style={styles.emptyTitle}>{live.error ? "Can't load orders" : 'All Clear'}</Text>
+                <Text style={styles.emptySub}>
+                  {live.error ? 'Check your connection, then refresh.' : 'No active violations at this time.'}
+                </Text>
+                <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: T.primary }]} onPress={live.refresh}>
+                  <Text style={styles.refreshBtnText}>Refresh</Text>
+                </TouchableOpacity>
+              </View>
             )}
-            ListHeaderComponent={
-              <Text style={styles.listHeader}>
-                {orders.length} active violation{orders.length !== 1 ? 's' : ''} · Bugo–Igpit Corridor
-              </Text>
-            }
-          />
-        )}
 
-        {/* ── MAP VIEW ────────────────────────────────────────────────────── */}
-        {!loading && view === 'map' && (
-          <LeafletMap
-            style={styles.map}
-            markers={mapMarkers}
-            onMarkerPress={(id) => {
-              const item = orders.find(o => String(o.puv_id) === String(id));
-              if (item) { setView('list'); navigation.navigate('Action', { order: item }); }
-            }}
-          />
-        )}
+            {!loading && orders.length > 0 && (
+              <FlatList
+                data={orders}
+                keyExtractor={item => String(item.puv_id)}
+                contentContainerStyle={styles.list}
+                refreshControl={
+                  <RefreshControl refreshing={live.refreshing} onRefresh={live.refresh} tintColor={T.primary} colors={[T.primary]} />
+                }
+                renderItem={({ item, index }) => (
+                  <AnimatedListItem index={index}>
+                    <ViolationCard
+                      order={item}
+                      onPress={() => navigation.navigate('Action', { order: item })}
+                    />
+                  </AnimatedListItem>
+                )}
+                ListHeaderComponent={
+                  <Text style={styles.listHeader}>
+                    {orders.length} active violation{orders.length !== 1 ? 's' : ''} · Bugo–Igpit Corridor
+                  </Text>
+                }
+              />
+            )}
+          </View>
+
+          {/* ── MAP VIEW: built the first time you open it, then kept, so
+                 switching List ⇄ Map is instant and keeps your zoom ──────── */}
+          {mapOpened && (
+            <View style={[StyleSheet.absoluteFill, view !== 'map' && styles.hidden]} pointerEvents={view === 'map' ? 'auto' : 'none'}>
+              <LeafletMap
+                style={styles.map}
+                markers={mapMarkers}
+                onMarkerPress={(id) => {
+                  const item = orders.find(o => String(o.puv_id) === String(id));
+                  if (item) navigation.navigate('Action', { order: item });
+                }}
+              />
+            </View>
+          )}
+        </View>
       </View>
 
     </View>
@@ -308,6 +307,8 @@ const styles = StyleSheet.create({
   listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
 
   map: { flex: 1 },
+  hidden: { opacity: 0, zIndex: -1 },
+  banner: { marginHorizontal: 16, marginTop: 12 },
   callout:         { width: 210, padding: 4 },
   calloutPlate:    { fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
   calloutDetail:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_Regular', fontWeight: '500' },

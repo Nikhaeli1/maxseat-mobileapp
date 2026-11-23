@@ -110,7 +110,7 @@ const roleBase = {
 export const ROLE = {
   passenger: {
     ...roleBase,
-    icon:  '🚌',
+    icon:  'bus-outline',
     label: 'Passenger',
   },
   enforcer: {
@@ -118,7 +118,7 @@ export const ROLE = {
     danger:       COLORS.danger,
     dangerBg:     COLORS.dangerBg,
     dangerBorder: COLORS.dangerBorder,
-    icon:  '🛡',
+    icon:  'shield-checkmark-outline',
     label: 'Enforcer',
     badgeColor: COLORS.danger,
   },

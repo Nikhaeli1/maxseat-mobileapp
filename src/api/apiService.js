@@ -25,6 +25,24 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// ─── SESSION EXPIRED ──────────────────────────────────────────────────────────
+// Any "401 Unauthorized" outside sign-in/sign-out means the saved login is no
+// longer valid. AuthContext registers one handler that signs the user out
+// once, so screens don't each need their own "session expired" pop-up.
+let onUnauthorized = null;
+export const setUnauthorizedHandler = (fn) => { onUnauthorized = fn; };
+
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const url = error?.config?.url || '';
+    if (error?.response?.status === 401 && onUnauthorized && !/\/(login|register|logout)$/.test(url)) {
+      onUnauthorized();
+    }
+    return Promise.reject(error);
+  },
+);
+
 // ─── TOKEN HELPERS ────────────────────────────────────────────────────────────
 export const saveToken  = (token) => AsyncStorage.setItem(TOKEN_KEY, token);
 export const clearToken = ()      => AsyncStorage.removeItem(TOKEN_KEY);
