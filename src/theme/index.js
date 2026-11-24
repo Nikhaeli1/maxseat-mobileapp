@@ -40,6 +40,7 @@ const LIGHT = {
 
   // Lime = "look here". Fill with dark text on top.
   alert:         '#C6F24E',
+  overloadRed:   '#E5484D',   // map pins and badges for overloaded jeeps
   onAlert:       '#14211B',
 
   // Urgent text (overloaded, overheating, errors). Readable on the page background.
@@ -84,6 +85,7 @@ const DARK = {
   borderLight:   '#2A302C',
 
   alert:         '#C6F24E',
+  overloadRed:   '#E5484D',   // map pins and badges for overloaded jeeps
   onAlert:       '#14211B',
 
   danger:        '#C6F24E',

@@ -84,7 +84,7 @@ export default function DispatchScreen({ navigation }) {
       lat:    item.lat,
       lng:    item.lng,
       hasGps: item.has_gps,
-      color:  isCritical ? COLORS.danger : COLORS.warning,
+      color:  isCritical ? COLORS.overloadRed : COLORS.warning,   // red pin = overloaded
       radius: 12,
       title:  item.plate,
       lines:  [

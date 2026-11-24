@@ -122,7 +122,7 @@ export default function ActionScreen({ route, navigation }) {
               lat:    order.lat,
               lng:    order.lng,
               hasGps: order.has_gps,
-              color:  isCritical ? COLORS.alert : '#DDF79A',
+              color:  isCritical ? COLORS.overloadRed : '#DDF79A',
               radius: 12,
               title:  order.plate,
               lines:  [order.loc_name],

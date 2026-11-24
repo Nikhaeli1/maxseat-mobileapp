@@ -56,7 +56,8 @@ export default function BusSeats({ passengers = 0, capacity = 20, scale = 1, sho
   let headline;
   let sub;
   if (extra > 0) { headline = `${extra} too many`; sub = `${passengers} riders · ${cap} seats`; }
-  else if (free <= 3) { headline = free === 0 ? 'Full' : `${free} ${free === 1 ? 'seat' : 'seats'} left`; sub = 'Squeeze in fast'; }
+  else if (free === 0) { headline = 'Full'; sub = 'No seats left. Wait for the next one'; }
+  else if (free <= 3) { headline = `${free} ${free === 1 ? 'seat' : 'seats'} left`; sub = 'Almost full'; }
   else { headline = `${free} seats free`; sub = `${passengers} sakay · ${cap} seats`; }
 
   return (

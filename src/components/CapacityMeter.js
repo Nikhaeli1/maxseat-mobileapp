@@ -7,11 +7,12 @@ import AnimatedBar from './AnimatedBar';
 export default function CapacityMeter({ passengers, capacity, loadPct }) {
   const pct      = Math.min(loadPct, 100);
   const over     = passengers > capacity;
-  const nearFull = !over && loadPct >= 80;
+  const full     = !over && capacity > 0 && passengers >= capacity;   // every seat taken
+  const nearFull = !over && !full && loadPct >= 80;
 
-  const barColor  = over ? COLORS.danger  : nearFull ? COLORS.warning : COLORS.success;
-  const bgColor   = over ? COLORS.dangerBg      : nearFull ? COLORS.warningBg      : COLORS.hoverBg;
-  const label     = over ? 'Overloaded'   : nearFull ? 'Nearly full'  : 'Within limit';
+  const barColor  = over || full ? COLORS.danger   : nearFull ? COLORS.warning   : COLORS.success;
+  const bgColor   = over || full ? COLORS.dangerBg : nearFull ? COLORS.warningBg : COLORS.hoverBg;
+  const label     = over ? 'Overloaded' : full ? 'Full' : nearFull ? 'Nearly full' : 'Within limit';
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>

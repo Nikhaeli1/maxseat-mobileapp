@@ -8,6 +8,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
 import { GradientFill } from '../../components/Gradient';
+import { loadState } from '../../utils/load';
 import { COLORS, ROLE, RADIUS , FONTS, IS_DARK, themed } from '../../theme';
 
 const T = ROLE.passenger;
@@ -21,8 +22,9 @@ export default function MapScreen() {
   const puvs    = useMemo(() => live.data?.puvs || [], [live.data]);
   const loading = live.loading;
 
-  // Map dots: calm green when fine, lime when overloaded (the 'look here' color)
-  const markerColor = (p) => p.overloaded ? COLORS.alert : p.load_pct >= 80 ? '#DDF79A' : COLORS.primary;
+  // Map dots: green when fine, lime shades when filling up, red when overloaded
+  const MARKER = { over: COLORS.overloadRed, full: '#8FB52A', near: '#DDF79A', free: COLORS.primary };
+  const markerColor = (p) => MARKER[loadState(p)];
 
   const overloaded = puvs.filter(p => p.overloaded).length;
 
@@ -64,9 +66,10 @@ export default function MapScreen() {
       {/* LEGEND */}
       <View style={styles.legend}>
         {[
-          { color: COLORS.primary, label: 'Available' },
-          { color: '#DDF79A',      label: 'Nearly Full' },
-          { color: COLORS.alert,   label: 'Overloaded' },
+          { color: COLORS.primary, label: 'Seats free' },
+          { color: '#DDF79A',      label: 'Nearly full' },
+          { color: '#8FB52A',      label: 'Full' },
+          { color: COLORS.overloadRed, label: 'Overloaded' },
         ].map(({ color, label }) => (
           <View key={label} style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: color }]} />
@@ -119,12 +122,12 @@ const styles = themed(() => ({
   reloadBtn: { width: 46, height: 46, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', justifyContent: 'center', alignItems: 'center' },
   reloadIcon:{ fontSize: 20, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
-  legend:     { backgroundColor: COLORS.cardBg, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  legend:     { backgroundColor: COLORS.cardBg, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot:  { width: 10, height: 10, borderRadius: 5 },
   legendText: { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
-  alertBadge: { marginLeft: 'auto', backgroundColor: COLORS.alert, borderRadius: RADIUS.full, paddingHorizontal: 9, paddingVertical: 3 },
-  alertText:  { color: COLORS.onAlert, fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  alertBadge: { marginLeft: 'auto', backgroundColor: COLORS.overloadRed, borderRadius: RADIUS.full, paddingHorizontal: 9, paddingVertical: 3 },
+  alertText:  { color: '#FFFFFF', fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
 
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: IS_DARK ? 'rgba(27,31,29,0.85)' : 'rgba(255,255,255,0.85)', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   bannerWrap:     { position: 'absolute', left: 12, right: 12, bottom: 16, zIndex: 11 },

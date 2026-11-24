@@ -16,6 +16,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LiveStamp from '../../components/LiveStamp';
 import useLiveData from '../../hooks/useLiveData';
 import Icon from '../../components/Icon';
+import { loadState, LOAD_LABEL } from '../../utils/load';
 import { GradientFill } from '../../components/Gradient';
 import { useTutorial } from '../../context/TutorialContext';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, TYPE, themed } from '../../theme';
@@ -29,9 +30,10 @@ const FILTERS = [
   { key: 'all',   label: 'All' },
   { key: 'free',  label: 'Seats free' },
   { key: 'near',  label: 'Nearly full' },
+  { key: 'full',  label: 'Full' },
   { key: 'over',  label: 'Overloaded' },
 ];
-const bucket = (p) => (p.overloaded ? 'over' : p.load_pct >= 80 ? 'near' : 'free');
+const bucket = loadState;
 
 export default function HomeScreen({ navigation }) {
   const { user, dashTutorialRequest, clearDashTutorialRequest } = useAuth();
@@ -71,7 +73,7 @@ export default function HomeScreen({ navigation }) {
       targetRef: listRef,
       icon: 'reader-outline',
       title: 'Read a card at a glance',
-      desc: 'Plain outline = seats free. Lime outline = nearly full. Solid lime = overloaded. Tap a card to see the live cabin view.',
+      desc: 'Each card says Seats free, Nearly full, Full or Overloaded. Tap a card to see the live cabin view.',
     },
     {
       targetRect: { h: 82, fromBottom: true },
@@ -124,7 +126,7 @@ export default function HomeScreen({ navigation }) {
 
   // Search + quick filter, worked out from the live list every time it changes
   const counts = useMemo(() => {
-    const c = { all: puvs.length, free: 0, near: 0, over: 0 };
+    const c = { all: puvs.length, free: 0, near: 0, full: 0, over: 0 };
     puvs.forEach((p) => { c[bucket(p)] += 1; });
     return c;
   }, [puvs]);
@@ -141,8 +143,11 @@ export default function HomeScreen({ navigation }) {
 
   const handleSearch = (text) => setQuery(text);
 
-  const statusColor = (p) => p.overloaded ? COLORS.danger : p.load_pct >= 80 ? COLORS.warning : COLORS.success;
-  const statusLabel = (p) => p.overloaded ? 'Overloaded' : p.load_pct >= 80 ? 'Nearly full' : 'Seats free';
+  const statusColor = (p) => {
+    const s = loadState(p);
+    return s === 'over' || s === 'full' ? COLORS.danger : s === 'near' ? COLORS.warning : COLORS.success;
+  };
+  const statusLabel = (p) => LOAD_LABEL[loadState(p)];
 
   const renderItem = ({ item }) => {
     const color = statusColor(item);

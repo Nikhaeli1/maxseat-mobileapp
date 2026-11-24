@@ -26,7 +26,7 @@ export function buildMapHtml({ baseUrl, cartoKey = '', interactive = true, showL
   .ms-title { font-size: 16px; font-weight: 800; color: #14211B; margin-bottom: 2px; }
   .ms-line { font-size: 12px; color: #5E6F67; margin-top: 2px; }
   .ms-line.warn { color: #4D6B00; font-weight: 700; }
-  .ms-line.bad  { color: #14211B; font-weight: 800; background: #C6F24E; border-radius: 6px; padding: 1px 6px; display: inline-block; }
+  .ms-line.bad  { color: #FFFFFF; font-weight: 800; background: #E5484D; border-radius: 6px; padding: 1px 6px; display: inline-block; }
   .ms-nogps { font-size: 11px; color: #8C9A93; margin-top: 6px; }
   .ms-cta { display: block; margin-top: 10px; padding: 9px 10px; border-radius: 10px; background: #2F6F5A;
             color: #fff; font-size: 13px; font-weight: 800; text-align: center; }
