@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, RADIUS , FONTS} from '../theme';
+import { COLORS, RADIUS , FONTS, themed } from '../theme';
 import BusSeats from './BusSeats';
+import AnimatedBar from './AnimatedBar';
 
 export default function CapacityMeter({ passengers, capacity, loadPct }) {
   const pct      = Math.min(loadPct, 100);
   const over     = passengers > capacity;
-  const nearFull = !over && loadPct >= 80;
+  const full     = !over && capacity > 0 && passengers >= capacity;   // every seat taken
+  const nearFull = !over && !full && loadPct >= 80;
 
-  const barColor  = over ? COLORS.danger  : nearFull ? COLORS.warning : COLORS.success;
-  const bgColor   = over ? COLORS.dangerBg      : nearFull ? COLORS.warningBg      : COLORS.hoverBg;
-  const label     = over ? 'OVERLOADED'   : nearFull ? 'NEARLY FULL'  : 'WITHIN LIMIT';
+  const barColor  = over || full ? COLORS.danger   : nearFull ? COLORS.warning   : COLORS.success;
+  const bgColor   = over || full ? COLORS.dangerBg : nearFull ? COLORS.warningBg : COLORS.hoverBg;
+  const label     = over ? 'Overloaded' : full ? 'Full' : nearFull ? 'Nearly full' : 'Within limit';
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
@@ -21,8 +23,8 @@ export default function CapacityMeter({ passengers, capacity, loadPct }) {
         <Text style={styles.unit}> pax</Text>
       </View>
 
-      <View style={styles.barBg}>
-        <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+      <View style={styles.barWrap}>
+        <AnimatedBar pct={pct} color={barColor} track="rgba(255,255,255,0.6)" height={10} />
       </View>
 
       <View style={styles.statusRow}>
@@ -39,21 +41,20 @@ export default function CapacityMeter({ passengers, capacity, loadPct }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   container: { borderRadius: RADIUS.md, padding: 16 },
   countRow:  { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 },
   paxCount:  { fontSize: 48, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', lineHeight: 52 },
   slash:     { fontSize: 28, color: COLORS.textMuted, fontFamily: 'Outfit_Regular', fontWeight: '300', paddingBottom: 6 },
   capCount:  { fontSize: 28, color: COLORS.textSecondary, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', paddingBottom: 6 },
-  unit:      { fontSize: 14, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', paddingBottom: 8 },
-  barBg:     { height: 10, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 5, marginBottom: 10, overflow: 'hidden' },
-  barFill:   { height: 10, borderRadius: 5 },
+  unit:      { fontSize: 15.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', paddingBottom: 8 },
+  barWrap:   { marginBottom: 10 },
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   cabin:     { alignItems: 'center', paddingTop: 4 },
   pill:      { borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1 },
-  pillText:  { fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
+  pillText:  { fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.5 },
   pctText:   { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900' },
   dotsRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   dot:       { width: 14, height: 14, borderRadius: 3 },
-  dotsMore:  { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '700', alignSelf: 'center' },
-});
+  dotsMore:  { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '700', alignSelf: 'center' },
+}));

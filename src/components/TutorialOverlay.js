@@ -24,7 +24,8 @@ import {
   Animated, Dimensions, Easing, Platform,
   StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
-import { COLORS, RADIUS, FONTS, IS_DARK } from '../theme';
+import { COLORS, RADIUS, FONTS, IS_DARK, themed } from '../theme';
+import Icon from './Icon';
 
 const WIN = Dimensions.get('window');
 
@@ -240,7 +241,7 @@ export default function TutorialOverlay({
             <View style={styles.topRow}>
               <Text style={[styles.counter, { color: muted }]}>{idx + 1} of {steps.length}</Text>
               <TouchableOpacity onPress={finish} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityLabel="Close tour">
-                <Text style={[styles.close, { color: muted }]}>✕</Text>
+                <Icon name="close" size={20} color={muted} />
               </TouchableOpacity>
             </View>
 
@@ -251,7 +252,7 @@ export default function TutorialOverlay({
             <View style={styles.body}>
               {step.icon ? (
                 <View style={[styles.iconTile, { backgroundColor: IS_DARK ? 'rgba(198,242,78,0.14)' : '#EEF5F1' }]}>
-                  <Text style={styles.iconTxt}>{step.icon}</Text>
+                  <Icon name={step.icon} size={22} color={IS_DARK ? '#C6F24E' : (accentColor || '#2F6F5A')} />
                 </View>
               ) : null}
               <View style={{ flex: 1 }}>
@@ -281,7 +282,7 @@ export default function TutorialOverlay({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:     { ...StyleSheet.absoluteFillObject, zIndex: 9999, elevation: 9999 },
   dim:      { position: 'absolute', backgroundColor: DIM },
   cardWrap: { position: 'absolute', zIndex: 30, elevation: 30 },
@@ -293,17 +294,17 @@ const styles = StyleSheet.create({
     }),
   },
   topRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  counter:  { fontSize: 11.5, fontFamily: FONTS.semiBold, letterSpacing: 0.4 },
-  close:    { fontSize: 15, fontFamily: FONTS.semiBold },
+  counter:  { fontSize: 13, fontFamily: FONTS.semiBold, letterSpacing: 0.4 },
+  close:    { fontSize: 16, fontFamily: FONTS.semiBold },
   track:    { height: 4, borderRadius: 2, overflow: 'hidden', marginBottom: 14 },
   fill:     { height: 4, borderRadius: 2, backgroundColor: LIME },
   body:     { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   iconTile: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   iconTxt:  { fontSize: 22 },
   title:    { fontSize: 16, fontFamily: FONTS.extraBold, marginBottom: 4, lineHeight: 21 },
-  desc:     { fontSize: 13, fontFamily: FONTS.regular, lineHeight: 19 },
+  desc:     { fontSize: 14.5, fontFamily: FONTS.regular, lineHeight: 19 },
   footer:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  link:     { fontSize: 13, fontFamily: FONTS.semiBold },
+  link:     { fontSize: 14.5, fontFamily: FONTS.semiBold },
   nextBtn:  { borderRadius: RADIUS.full, paddingHorizontal: 24, paddingVertical: 11 },
-  nextTxt:  { color: '#FFFFFF', fontSize: 13.5, fontFamily: FONTS.extraBold },
-});
+  nextTxt:  { color: '#FFFFFF', fontSize: 15, fontFamily: FONTS.extraBold },
+}));

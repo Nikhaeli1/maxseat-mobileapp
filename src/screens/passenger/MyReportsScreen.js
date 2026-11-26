@@ -1,48 +1,45 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   View, Text, FlatList, StyleSheet, StatusBar,
-  ActivityIndicator, RefreshControl, Alert,
+  RefreshControl, TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useScrollToTop, useNavigation } from '@react-navigation/native';
 import { fetchMyComplaints } from '../../api/apiService';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
+import { GradientFill } from '../../components/Gradient';
 import AnimatedListItem from '../../components/AnimatedListItem';
-import { COLORS, ROLE, SHADOW, RADIUS , FONTS} from '../../theme';
+import SkeletonList from '../../components/Skeleton';
+import ErrorBanner from '../../components/ErrorBanner';
+import LiveStamp from '../../components/LiveStamp';
+import useLiveData from '../../hooks/useLiveData';
+import Icon from '../../components/Icon';
+import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, byMode } from '../../theme';
 
 const T = ROLE.passenger;
 
-const TYPE_CONFIG = {
-  overload: { icon: '👥', label: 'Passenger Overloading', color: COLORS.danger,  bg: COLORS.dangerLight },
-  thermal:  { icon: '🌡', label: 'Elevated Temperature',  color: COLORS.warning, bg: COLORS.warningBg },
-  other:    { icon: '⚠',  label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
-};
+const TYPE_CONFIG = byMode(() => ({
+  overload: { icon: 'people-outline', label: 'Passenger Overloading', color: COLORS.danger,  bg: COLORS.dangerLight },
+  thermal:  { icon: 'thermometer-outline', label: 'Elevated Temperature',  color: COLORS.warning, bg: COLORS.warningBg },
+  other:    { icon: 'alert-circle-outline', label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
+}));
 
-const STATUS_CONFIG = {
-  open:   { color: T.primary, bg: T.primaryLight, label: 'OPEN' },
-  closed: { color: COLORS.success, bg: COLORS.successBg,      label: 'RESOLVED' },
-};
+const STATUS_CONFIG = byMode(() => ({
+  open:   { color: T.accent, bg: T.primaryLight, label: 'Open' },
+  closed: { color: COLORS.success, bg: COLORS.successBg,      label: 'Resolved' },
+}));
 
 export default function MyReportsScreen() {
-  const { user }                     = useAuth();
-  const [complaints, setComplaints]  = useState([]);
-  const [loading,    setLoading]     = useState(true);
-  const [refreshing, setRefreshing]  = useState(false);
+  const { user }   = useAuth();
+  const navigation = useNavigation();
 
-  const load = useCallback(async (isRefresh = false) => {
-    isRefresh ? setRefreshing(true) : setLoading(true);
-    try {
-      const data = await fetchMyComplaints();
-      setComplaints(data.complaints || []);
-    } catch (err) {
-      Alert.alert('Error', 'Could not load your reports.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  // Refreshes on focus (so a new report shows right away) and every 30 s
+  const live       = useLiveData(fetchMyComplaints, { interval: 30000 });
+  const complaints = useMemo(() => live.data?.complaints || [], [live.data]);
+  const loading    = live.loading;
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  const scrollRef = useRef(null);
+  useScrollToTop(scrollRef);
 
   const openCount   = complaints.filter(c => c.status === 'open').length;
   const closedCount = complaints.filter(c => c.status !== 'open').length;
@@ -54,7 +51,7 @@ export default function MyReportsScreen() {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={[styles.typeIcon, { backgroundColor: tc.bg }]}>
-            <Text style={{ fontSize: 20 }}>{tc.icon}</Text>
+            <Icon name={tc.icon} size={22} color={tc.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.typeName}>{tc.label}</Text>
@@ -70,7 +67,7 @@ export default function MyReportsScreen() {
         <View style={styles.infoGrid}>
           {[
             ['Plate', item.plate],
-            ['Date',  item.timestamp ? item.timestamp.split('T')[0] : '—'],
+            ['Sent',  item.timestamp ? item.timestamp.replace('T', ' ').slice(0, 16) : '—'],
             ['Pax',   item.passengers != null ? `${item.passengers}/${item.capacity}` : '—'],
             ['Temp',  item.temp != null ? `${item.temp}°C` : '—'],
           ].map(([label, value]) => (
@@ -92,22 +89,21 @@ export default function MyReportsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.cardBg} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       <View style={styles.header}>
-        <Logo size="header" style={{ marginBottom: 10 }} />
-        <View style={styles.passengerPill}>
-          <Text style={styles.passengerPillText}>PASSENGER</Text>
-        </View>
-        <Text style={styles.title}>My Reports</Text>
-        <Text style={styles.sub}>{user?.full_name}</Text>
+        <GradientFill name="brand" glow />
+        <Logo size="header" onDark style={{ marginBottom: 16 }} />
+        <Text style={styles.title}>My reports</Text>
+        <Text style={styles.sub}>Violations you reported, and what happened to them</Text>
+        <LiveStamp updatedAt={live.updatedAt} busy={live.busy} error={live.error} onDark style={{ marginTop: 8 }} />
       </View>
 
       {/* STATS */}
       <View style={styles.statRow}>
         {[
           { value: complaints.length, label: 'Total',    color: COLORS.textPrimary },
-          { value: openCount,         label: 'Open',     color: T.primary },
+          { value: openCount,         label: 'Open',     color: T.accent },
           { value: closedCount,       label: 'Resolved', color: COLORS.success },
         ].map(({ value, label, color }, i) => (
           <View key={label} style={[styles.statCard, i > 0 && styles.statCardBorder]}>
@@ -117,27 +113,30 @@ export default function MyReportsScreen() {
         ))}
       </View>
 
-      {loading && (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={T.primary} />
-          <Text style={[styles.loadingText, { color: T.primary }]}>Loading your reports…</Text>
-        </View>
+      {live.error && !loading && (
+        <ErrorBanner error={live.error} onRetry={live.reload} busy={live.busy} style={{ marginHorizontal: 16, marginTop: 12 }} />
       )}
 
-      {!loading && complaints.length === 0 && (
+      {loading && <SkeletonList count={2} variant="report" />}
+
+      {!loading && complaints.length === 0 && !live.error && (
         <View style={styles.centered}>
-          <Text style={styles.emptyIcon}>📢</Text>
+          <Icon name="megaphone-outline" size={48} color={COLORS.textMuted} style={styles.emptyIcon} />
           <Text style={styles.emptyTitle}>No Reports Yet</Text>
-          <Text style={styles.emptySub}>Violation reports you submit will appear here.</Text>
+          <Text style={styles.emptySub}>See a PUV breaking the rules? Open it from the PUVs tab and tap “Report a Violation”.</Text>
+          <TouchableOpacity style={[styles.emptyBtn, { backgroundColor: T.primary }]} onPress={() => navigation.navigate('PUVs')}>
+            <Text style={styles.emptyBtnText}>Go to PUVs</Text>
+          </TouchableOpacity>
         </View>
       )}
 
       {!loading && complaints.length > 0 && (
         <FlatList
+          ref={scrollRef}
           data={complaints}
           keyExtractor={(item, i) => `${item.serial}-${i}`}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={T.primary} />}
+          refreshControl={<RefreshControl refreshing={live.refreshing} onRefresh={live.refresh} tintColor={T.primary} colors={[T.primary]} />}
           ListHeaderComponent={
             <Text style={styles.listHeader}>{complaints.length} report{complaints.length !== 1 ? 's' : ''} submitted</Text>
           }
@@ -152,44 +151,47 @@ export default function MyReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root: { flex: 1, backgroundColor: COLORS.pageBg },
 
-  header: { backgroundColor: COLORS.cardBg, paddingTop: 52, paddingBottom: 18, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  header: { backgroundColor: COLORS.dark, overflow: 'hidden', paddingTop: 52, paddingBottom: 46, paddingHorizontal: 20, borderBottomLeftRadius: RADIUS.xl, borderBottomRightRadius: RADIUS.xl },
   passengerPill: { backgroundColor: 'rgba(47,111,90,0.1)', borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(47,111,90,0.25)', alignSelf: 'flex-start', marginBottom: 8 },
-  passengerPillText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.primary, letterSpacing: 0.5 },
-  title: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.3 },
-  sub:   { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
+  passengerPillText: { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: T.accent, letterSpacing: 0.5 },
+  title: { fontSize: 26, lineHeight: 32, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.4 },
+  sub:   { fontSize: 14.5, color: 'rgba(255,255,255,0.82)', fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 3 },
 
-  statRow:       { backgroundColor: COLORS.cardBg, flexDirection: 'row', borderTopWidth: 1, borderTopColor: COLORS.border, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  // Floats over the bottom of the gradient header
+  statRow:       { backgroundColor: COLORS.cardBg, flexDirection: 'row', marginHorizontal: 16, marginTop: -30, marginBottom: 6, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.md },
   statCard:      { flex: 1, paddingVertical: 14, alignItems: 'center' },
   statCardBorder:{ borderLeftWidth: 1, borderLeftColor: COLORS.border },
   statValue:     { fontSize: 24, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary },
-  statLabel:     { fontSize: 10, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
+  statLabel:     { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '700', marginTop: 2 },
 
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   loadingText: { marginTop: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600' },
-  emptyIcon:   { fontSize: 52, marginBottom: 12 },
+  emptyIcon:   { marginBottom: 12 },
   emptyTitle:  { fontSize: 18, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
-  emptySub:    { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20 },
+  emptySub:    { fontSize: 14.5, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 18 },
+  emptyBtn:     { borderRadius: RADIUS.md, paddingHorizontal: 24, paddingVertical: 10 },
+  emptyBtnText: { color: '#fff', fontFamily: 'Outfit_SemiBold', fontWeight: '700', fontSize: 15.5 },
 
   list:       { padding: 16 },
-  listHeader: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  listHeader: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 12 },
 
   card:       { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border, ...SHADOW.card },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   typeIcon:   { width: 46, height: 46, borderRadius: RADIUS.md, justifyContent: 'center', alignItems: 'center' },
-  typeName:   { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
-  serial:     { fontSize: 11, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
+  typeName:   { fontSize: 14.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  serial:     { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
   statusBadge:{ borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText: { fontSize: 10, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  statusText: { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   divider:    { height: 1, backgroundColor: COLORS.borderLight, marginBottom: 12 },
 
   infoGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   infoItem:  { width: '47%', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.sm, padding: 10, borderWidth: 1, borderColor: COLORS.border },
-  infoLabel: { fontSize: 9, fontFamily: 'Outfit_SemiBold', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: COLORS.textMuted, marginBottom: 3 },
-  infoValue: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  infoLabel: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.textMuted, marginBottom: 3 },
+  infoValue: { fontSize: 14.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
 
   descBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10 },
-  descText: { fontSize: 12, fontStyle: 'italic', lineHeight: 17 },
-});
+  descText: { fontSize: 13.5, fontStyle: 'italic', lineHeight: 17 },
+}));

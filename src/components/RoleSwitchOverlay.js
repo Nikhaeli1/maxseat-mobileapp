@@ -2,7 +2,7 @@
  * RoleSwitchOverlay — full-screen transition when switching Passenger ⇄ Enforcer.
  *
  *   1. A forest-green circle grows from the middle of the screen and covers it.
- *   2. The role badge flips from the old role's icon to the new one.
+ *   2. The role badge flips from the old role's letter to the new one.
  *   3. Behind the cover, the app signs out and opens sign-in with the new role.
  *   4. The cover fades and lifts away, revealing the sign-in screen.
  *
@@ -12,13 +12,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-native';
-import { FONTS } from '../theme';
+import { FONTS, themed } from '../theme';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const D = Math.ceil(Math.hypot(SW, SH) * 1.1);   // circle big enough to cover any corner
 const GREEN = '#2F6F5A';
 const LIME = '#C6F24E';
-const ICON = { passenger: '🚌', enforcer: '🛡' };
+const INITIAL = { passenger: 'P', enforcer: 'E' };
 const LABEL = { passenger: 'Passenger', enforcer: 'Enforcer' };
 
 export default function RoleSwitchOverlay({ active, from, to }) {
@@ -73,7 +73,7 @@ export default function RoleSwitchOverlay({ active, from, to }) {
         transform: [{ translateY: lift.interpolate({ inputRange: [0, 1], outputRange: [0, -30] }) }],
       }]}>
         <Animated.View style={[styles.badge, { transform: [{ scale: pop }, { scaleX: flip }] }]}>
-          <Text style={styles.badgeIcon}>{ICON[role] || '🚌'}</Text>
+          <Text style={styles.badgeLetter}>{INITIAL[role] || 'P'}</Text>
         </Animated.View>
         <Text style={styles.kicker}>{showTo ? 'Switching to' : 'Leaving'}</Text>
         <Text style={styles.title}>{LABEL[role] || ''} mode</Text>
@@ -87,15 +87,15 @@ export default function RoleSwitchOverlay({ active, from, to }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { ...StyleSheet.absoluteFillObject, zIndex: 10000, elevation: 10000, alignItems: 'center', justifyContent: 'center' },
   circle: { position: 'absolute', width: D, height: D, borderRadius: D / 2, backgroundColor: GREEN, left: (SW - D) / 2, top: (SH - D) / 2 },
   center: { alignItems: 'center' },
+  badgeLetter: { fontSize: 44, lineHeight: 52, color: '#14211B', fontFamily: FONTS.extraBold, fontWeight: '800' },
   badge:  { width: 96, height: 96, borderRadius: 30, backgroundColor: LIME, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-  badgeIcon: { fontSize: 44 },
-  kicker: { color: 'rgba(255,255,255,0.75)', fontSize: 14, fontFamily: FONTS.semiBold, marginBottom: 2 },
+  kicker: { color: 'rgba(255,255,255,0.75)', fontSize: 15.5, fontFamily: FONTS.semiBold, marginBottom: 2 },
   title:  { color: '#FFFFFF', fontSize: 28, fontFamily: FONTS.extraBold },
   dots:   { flexDirection: 'row', alignItems: 'center', marginTop: 18, gap: 8 },
   dot:    { width: 10, height: 10, borderRadius: 5 },
   bar:    { width: 36, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' },
-});
+}));

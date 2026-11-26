@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import StatusBadge from './StatusBadge';
-import { COLORS, SHADOW, RADIUS , FONTS} from '../theme';
+import Icon from './Icon';
+import { COLORS, SHADOW, RADIUS , FONTS, themed, IS_DARK } from '../theme';
 
 export default function ViolationCard({ order, onPress }) {
   const isCritical = order.violations.some(v => v.severity === 'critical');
@@ -41,12 +42,12 @@ export default function ViolationCard({ order, onPress }) {
       {/* Meta info chips — matching web card footer style */}
       <View style={styles.metaRow}>
         {[
-          { icon: '📍', text: order.loc_name },
-          { icon: '👤', text: order.driver   },
-          { icon: '🕒', text: order.last_update },
+          { icon: 'location-outline', text: order.loc_name },
+          { icon: 'person-outline',   text: order.driver   },
+          { icon: 'time-outline',     text: order.last_update },
         ].map(({ icon, text }) => (
           <View key={icon} style={styles.metaChip}>
-            <Text style={styles.metaIcon}>{icon}</Text>
+            <Icon name={icon} size={13} color={COLORS.textSecondary} />
             <Text style={styles.metaText} numberOfLines={1}>{text}</Text>
           </View>
         ))}
@@ -62,7 +63,7 @@ export default function ViolationCard({ order, onPress }) {
             styles.respondText,
             isCritical ? styles.respondTextCritical : styles.respondTextNormal,
           ]}>
-            {isCritical ? 'Urgent — Respond' : 'Respond & Intercept →'}
+            {isCritical ? 'Urgent: Respond now' : 'Respond and intercept'}
           </Text>
         </View>
       </View>
@@ -70,7 +71,7 @@ export default function ViolationCard({ order, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   card: {
     backgroundColor: COLORS.cardBg,
     borderRadius:    RADIUS.lg,
@@ -95,14 +96,14 @@ const styles = StyleSheet.create({
   },
   plateWrap: { flex: 1, marginRight: 12 },
   plate:     { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '900', color: COLORS.textPrimary, letterSpacing: -0.5 },
-  company:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
+  company:   { fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
   badgeCol:  { alignItems: 'flex-end', gap: 4 },
 
   divider: { height: 1, backgroundColor: COLORS.border, marginBottom: 12 },
 
   violationRow:    { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
   violationDot:    { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
-  violationDetail: { flex: 1, fontSize: 12, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', lineHeight: 18 },
+  violationDetail: { flex: 1, fontSize: 13.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', lineHeight: 18 },
 
   metaRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
   metaChip: {
@@ -116,14 +117,13 @@ const styles = StyleSheet.create({
     borderWidth:      1,
     borderColor:     COLORS.border,
   },
-  metaIcon: { fontSize: 14 },
-  metaText: { fontSize: 11, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', flex: 1 },
+  metaText: { fontSize: 12.5, color: COLORS.textSecondary, fontFamily: 'Outfit_SemiBold', fontWeight: '600', flex: 1 },
 
   respondRow:          { marginTop: 12 },
   respondBtn:          { borderRadius: RADIUS.badge, paddingVertical: 10, alignItems: 'center' },
   respondBtnCritical:  { backgroundColor: 'rgba(198,242,78,0.1)', borderWidth: 1, borderColor: 'rgba(198,242,78,0.3)' },
-  respondBtnNormal:    { backgroundColor: COLORS.pageBg, borderWidth: 1, borderColor: COLORS.border },
-  respondText:         { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
+  respondBtnNormal:    { backgroundColor: IS_DARK ? COLORS.hoverBg : COLORS.pageBg, borderWidth: 1, borderColor: COLORS.border },
+  respondText:         { fontSize: 14.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   respondTextCritical: { color: COLORS.danger },
-  respondTextNormal:   { color: COLORS.textSecondary },
-});
+  respondTextNormal:   { color: IS_DARK ? COLORS.textPrimary : COLORS.textSecondary },
+}));

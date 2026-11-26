@@ -16,9 +16,11 @@ import {
   Animated, Dimensions, StatusBar, Easing,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK } from '../theme';
+import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK, themed } from '../theme';
 import BusSeats from '../components/BusSeats';
+import Icon from '../components/Icon';
 import Logo from '../components/Logo';
+import { GradientFill } from '../components/Gradient';
 
 const W = Dimensions.get('window').width;
 const LIME = '#C6F24E';
@@ -81,7 +83,7 @@ function Chip({ label, kind }) {
 function Feature({ icon, label }) {
   return (
     <View style={ui.feature}>
-      <Text style={ui.featureIcon}>{icon}</Text>
+      <Icon name={icon} size={24} color={COLORS.accent} style={ui.featureIcon} />
       <Text style={ui.featureTxt}>{label}</Text>
     </View>
   );
@@ -95,9 +97,9 @@ function P_Welcome() {
       <Logo size="full" />
       <Text style={ui.route}>Bugo – Igpit</Text>
       <View style={ui.featureRow}>
-        <Feature icon="🪑" label="Live seats" />
-        <Feature icon="🗺" label="Live map" />
-        <Feature icon="📣" label="Report" />
+        <Feature icon="people-outline" label="Live seats" />
+        <Feature icon="map-outline" label="Live map" />
+        <Feature icon="megaphone-outline" label="Report" />
       </View>
     </Stage>
   );
@@ -216,13 +218,13 @@ function P_Profile() {
         </View>
       </View>
       {[
-        ['🌗', 'Dark mode follows your phone'],
-        ['🛡', 'Switch to Enforcer mode'],
-        ['▶', 'Replay this guide'],
-        ['⏻', 'Log out'],
+        ['contrast-outline', 'Light or dark mode, your choice'],
+        ['shield-checkmark-outline', 'Switch to Enforcer mode'],
+        ['play-circle-outline', 'Replay this guide'],
+        ['log-out-outline', 'Log out'],
       ].map(([icon, label]) => (
         <View key={label} style={ui.menuRow}>
-          <Text style={ui.menuIcon}>{icon}</Text>
+          <Icon name={icon} size={18} color={COLORS.accent} style={ui.menuIcon} />
           <Text style={ui.menuTxt}>{label}</Text>
         </View>
       ))}
@@ -238,9 +240,9 @@ function E_Welcome() {
       <Logo size="full" />
       <Text style={ui.route}>Enforcer · Bugo – Igpit</Text>
       <View style={ui.featureRow}>
-        <Feature icon="🛡" label="Dispatch" />
-        <Feature icon="🚌" label="Live cabin" />
-        <Feature icon="📝" label="Log action" />
+        <Feature icon="shield-checkmark-outline" label="Dispatch" />
+        <Feature icon="bus-outline" label="Live cabin" />
+        <Feature icon="create-outline" label="Log action" />
       </View>
     </Stage>
   );
@@ -310,7 +312,7 @@ function E_Action() {
       ))}
       <View style={{ alignItems: 'center', marginTop: 6, height: 34, justifyContent: 'center' }}>
         <Animated.View style={[ui.logged, { transform: [{ scale: stamp.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }]}>
-          <Text style={ui.loggedTxt}>✓  Response logged</Text>
+          <Text style={ui.loggedTxt}>Response logged</Text>
         </Animated.View>
       </View>
     </Stage>
@@ -356,13 +358,13 @@ function E_Habits() {
   return (
     <Stage>
       {[
-        ['📝', 'Log every response', 'Complete records protect you and the riders'],
-        ['🔄', 'Refresh often', 'Pull down on the list for the latest data'],
-        ['🗺', 'Use the map', 'Spot flagged PUVs near you fast'],
-        ['⏻', 'Log out after your shift', 'Keeps dispatch records accurate'],
+        ['create-outline', 'Log every response', 'Complete records protect you and the riders'],
+        ['refresh-outline', 'Refresh often', 'The list also updates by itself every few seconds'],
+        ['map-outline', 'Use the map', 'Spot flagged PUVs near you fast'],
+        ['log-out-outline', 'Log out after your shift', 'Keeps dispatch records accurate'],
       ].map(([icon, t, sub]) => (
         <View key={t} style={ui.menuRow}>
-          <Text style={ui.menuIcon}>{icon}</Text>
+          <Icon name={icon} size={18} color={COLORS.accent} style={ui.menuIcon} />
           <View style={{ flex: 1 }}>
             <Text style={ui.optionTxt}>{t}</Text>
             <Text style={ui.small}>{sub}</Text>
@@ -381,7 +383,7 @@ const PASSENGER_SLIDES = [
   { Scene: P_LiveCabin, title: 'See inside, live',       sub: 'Tap a PUV to see its live cabin. Each person is a rider. Lime people are standing because every seat is taken.' },
   { Scene: P_LiveMap,   title: 'Follow it on the map',   sub: 'Watch your PUV move in real time and see how many minutes until it reaches you.' },
   { Scene: P_Report,    title: 'Report a problem',       sub: 'Overloaded or reckless? Send a report in a few taps. It goes straight to enforcers.' },
-  { Scene: P_Profile,   title: 'Make it yours',          sub: 'Dark mode follows your phone. Switch to Enforcer mode or replay this guide from Profile.' },
+  { Scene: P_Profile,   title: 'Make it yours',          sub: 'Pick light or dark mode, switch to Enforcer mode, or replay this guide from Profile.' },
 ];
 
 const ENFORCER_SLIDES = [
@@ -434,11 +436,12 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
+      <GradientFill name="page" glow="light" start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} />
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.pageBg} />
 
       <View style={styles.topBar}>
         <View style={styles.rolePill}>
-          <Text style={styles.rolePillTxt}>{role === 'enforcer' ? '🛡  Enforcer' : '🚌  Passenger'}</Text>
+          <Text style={styles.rolePillTxt}>{role === 'enforcer' ? 'Enforcer' : 'Passenger'}</Text>
         </View>
         {!isLast ? (
           <TouchableOpacity onPress={finish} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
@@ -481,73 +484,73 @@ export default function OnboardingScreen() {
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
-const ui = StyleSheet.create({
+const ui = themed(() => ({
   stage: {
     width: W - 48, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, padding: 16,
     borderWidth: IS_DARK ? 1 : 0, borderColor: COLORS.border, ...SHADOW.md,
   },
-  route:      { fontSize: 13, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
+  route:      { fontSize: 14.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
   featureRow: { flexDirection: 'row', gap: 10 },
   feature:    { alignItems: 'center', backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, paddingVertical: 12, width: (W - 48 - 32 - 20) / 3 },
-  featureIcon:{ fontSize: 22, marginBottom: 6 },
-  featureTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  featureIcon:{ marginBottom: 6 },
+  featureTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
-  kicker:  { fontSize: 11, fontFamily: FONTS.extraBold, letterSpacing: 1, color: COLORS.textSecondary },
+  kicker:  { fontSize: 12.5, fontFamily: FONTS.extraBold, letterSpacing: 1, color: COLORS.textSecondary },
   rowTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   plate:   { fontSize: 16, fontFamily: FONTS.extraBold, color: COLORS.textPrimary },
-  muted:   { fontSize: 12, fontFamily: FONTS.regular, color: COLORS.textSecondary },
-  small:   { fontSize: 11.5, fontFamily: FONTS.regular, color: COLORS.textSecondary },
+  muted:   { fontSize: 13.5, fontFamily: FONTS.regular, color: COLORS.textSecondary },
+  small:   { fontSize: 13, fontFamily: FONTS.regular, color: COLORS.textSecondary },
 
   chip:    { borderWidth: 1.5, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
-  chipTxt: { fontSize: 11, fontFamily: FONTS.extraBold },
+  chipTxt: { fontSize: 12.5, fontFamily: FONTS.extraBold },
 
   puvRow:  { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8 },
   barBg:   { height: 7, borderRadius: 4, backgroundColor: COLORS.border, overflow: 'hidden', marginTop: 10, marginBottom: 5 },
   barFill: { height: 7, borderRadius: 4 },
 
   etaPill: { backgroundColor: LIME, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  etaTxt:  { fontSize: 13, fontFamily: FONTS.extraBold, color: INK_ON_LIME },
+  etaTxt:  { fontSize: 14.5, fontFamily: FONTS.extraBold, color: INK_ON_LIME },
   mapBox:  { height: 34, justifyContent: 'center', marginHorizontal: 4 },
   routeLine: { position: 'absolute', left: 0, right: 0, height: 5, borderRadius: 3, backgroundColor: COLORS.primary },
   stop:    { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.cardBg, borderWidth: 3, borderColor: COLORS.primary },
   me:      { position: 'absolute', width: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.primary, borderWidth: 4, borderColor: COLORS.cardBg },
   busPin:  { position: 'absolute', left: 4, backgroundColor: COLORS.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 2, borderColor: LIME },
-  busPinTxt: { fontSize: 11, fontFamily: FONTS.extraBold, color: '#FFFFFF' },
+  busPinTxt: { fontSize: 12.5, fontFamily: FONTS.extraBold, color: '#FFFFFF' },
 
   option:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, padding: 10, marginBottom: 7 },
   optionOn:  { borderColor: LIME, backgroundColor: IS_DARK ? 'rgba(198,242,78,0.10)' : 'rgba(198,242,78,0.16)' },
   radio:     { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
   radioOn:   { borderColor: COLORS.primary },
   radioDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
-  optionTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  optionTxt: { fontSize: 15, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
   cta:       { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, height: 42, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  ctaTxt:    { color: '#FFFFFF', fontSize: 14, fontFamily: FONTS.extraBold },
+  ctaTxt:    { color: '#FFFFFF', fontSize: 15.5, fontFamily: FONTS.extraBold },
 
   avatar:    { width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
   menuRow:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: COLORS.borderLight },
-  menuIcon:  { width: 22, fontSize: 15, textAlign: 'center' },
-  menuTxt:   { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  menuIcon:  { width: 22, textAlign: 'center' },
+  menuTxt:   { fontSize: 15, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
 
   order:     { backgroundColor: COLORS.pageBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 8, borderWidth: 1.5, borderColor: COLORS.pageBg },
   critBadge: { backgroundColor: LIME, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
-  critTxt:   { fontSize: 10, fontFamily: FONTS.extraBold, letterSpacing: 0.8, color: INK_ON_LIME },
+  critTxt:   { fontSize: 12, fontFamily: FONTS.extraBold, letterSpacing: 0.8, color: INK_ON_LIME },
   logged:    { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 8 },
-  loggedTxt: { color: '#FFFFFF', fontSize: 12.5, fontFamily: FONTS.extraBold },
+  loggedTxt: { color: '#FFFFFF', fontSize: 14, fontFamily: FONTS.extraBold },
 
   pinWrap:   { position: 'absolute', width: 18, height: 18, marginLeft: -9, alignItems: 'center', justifyContent: 'center' },
   pin:       { width: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.primary, borderWidth: 3, borderColor: COLORS.cardBg },
   pulse:     { position: 'absolute', width: 18, height: 18, borderRadius: 9, borderWidth: 3, borderColor: LIME },
   legend:    { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-});
+}));
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:      { flex: 1, backgroundColor: COLORS.pageBg },
   topBar:    { paddingTop: 52, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  rolePill:  { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
-  rolePillTxt: { fontSize: 12, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
-  skip:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
+  rolePill:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
+  rolePillTxt: { fontSize: 13.5, fontFamily: FONTS.semiBold, color: COLORS.textPrimary },
+  skip:      { fontSize: 15.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
 
   sceneArea: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
   textArea:  { paddingHorizontal: 28, paddingTop: 12 },
@@ -558,7 +561,7 @@ const styles = StyleSheet.create({
   dots:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot:       { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.border },
   dotOn:     { width: 22, backgroundColor: COLORS.primary },
-  back:      { fontSize: 14, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
+  back:      { fontSize: 15.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
   nextBtn:   { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 26, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button },
-  nextTxt:   { color: '#FFFFFF', fontSize: 15, fontFamily: FONTS.extraBold },
-});
+  nextTxt:   { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
+}));

@@ -5,39 +5,43 @@ import HomeScreen      from '../screens/passenger/HomeScreen';
 import MapScreen       from '../screens/passenger/MapScreen';
 import MyReportsScreen from '../screens/passenger/MyReportsScreen';
 import ProfileScreen   from '../screens/passenger/ProfileScreen';
-import { COLORS, ROLE , FONTS} from '../theme';
+import { COLORS, ROLE , FONTS, IS_DARK, SHADOW, themed } from '../theme';
+import Icon from '../components/Icon';
 
 const Tab = createBottomTabNavigator();
 const T   = ROLE.passenger;
 
-function TabIcon({ icon, focused, label }) {
+function TabIcon({ icon, focused, color }) {
   return (
-    <View style={[tabStyles.iconWrap, focused && { backgroundColor: T.primary + '18' }]}>
-      <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4 }}>{icon}</Text>
+    <View style={[tabStyles.iconWrap, focused && tabStyles.iconOn]}>
+      <Icon name={focused ? icon : `${icon}-outline`} size={22} color={color} />
     </View>
   );
 }
 
-const tabStyles = StyleSheet.create({
-  iconWrap: { width: 40, height: 28, justifyContent: 'center', alignItems: 'center', borderRadius: 10 },
-});
+const tabStyles = themed(() => ({
+  iconWrap: { width: 52, height: 32, justifyContent: 'center', alignItems: 'center', borderRadius: 16 },
+  iconOn:   { backgroundColor: IS_DARK ? 'rgba(198,242,78,0.16)' : 'rgba(47,111,90,0.12)' },
+}));
 
 export default function PassengerTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        // Clean light bar; the open tab gets a soft green pill
         tabBarStyle: {
-          backgroundColor:  COLORS.dark,
-          borderTopColor:   COLORS.darkMid,
+          backgroundColor:  COLORS.cardBg,
+          borderTopColor:   COLORS.border,
           borderTopWidth:   1,
-          height:           68,
-          paddingBottom:    10,
-          paddingTop:       6,
+          height:           76,
+          paddingBottom:    12,
+          paddingTop:       8,
+          ...SHADOW.md,
         },
-        tabBarActiveTintColor:   T.primary,
+        tabBarActiveTintColor:   IS_DARK ? COLORS.alert : COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarLabelStyle:        { fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
+        tabBarLabelStyle:        { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700', letterSpacing: 0.3 },
       }}
     >
       <Tab.Screen
@@ -45,7 +49,7 @@ export default function PassengerTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'PUVs',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🚌" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="bus" focused={focused} color={color} />,
         }}
       />
       <Tab.Screen
@@ -53,7 +57,7 @@ export default function PassengerTabs() {
         component={MapScreen}
         options={{
           tabBarLabel: 'Live Map',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🗺" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="map" focused={focused} color={color} />,
         }}
       />
       <Tab.Screen
@@ -61,7 +65,7 @@ export default function PassengerTabs() {
         component={MyReportsScreen}
         options={{
           tabBarLabel: 'My Reports',
-          tabBarIcon: ({ focused }) => <TabIcon icon="📢" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="megaphone" focused={focused} color={color} />,
         }}
       />
       <Tab.Screen
@@ -69,7 +73,7 @@ export default function PassengerTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon icon="person" focused={focused} color={color} />,
         }}
       />
     </Tab.Navigator>

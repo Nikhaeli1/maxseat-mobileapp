@@ -5,8 +5,11 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { friendlyError } from '../api/errors';
 import Logo from '../components/Logo';
-import { COLORS, SHADOW, RADIUS } from '../theme';
+import { COLORS, SHADOW, RADIUS, TYPE, IS_DARK, themed } from '../theme';
+import { Field, Button } from '../components/ui';
+import { GradientFill } from '../components/Gradient';
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
@@ -21,17 +24,25 @@ export default function RegisterScreen({ navigation }) {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 350, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 80, friction: 10, useNativeDriver: true }),
+      // JS-driven: typing re-renders this screen, and on the new Android
+      // architecture a native-driven opacity can be reset to 0 by a re-render.
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 350, useNativeDriver: false }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 80, friction: 10, useNativeDriver: false }),
     ]).start();
+    const t = setTimeout(() => { fadeAnim.setValue(1); slideAnim.setValue(0); }, 1200);   // never leave the form faded
+    return () => clearTimeout(t);
   }, []);
 
-  const set = (key) => (val) => setForm(f => ({ ...f, [key]: val }));
+  // "Next" on the keyboard moves to the next box; "Done" on the last one submits
+  const inputs = useRef({});
+
+  const set = (key) => (val) => { setForm(f => ({ ...f, [key]: val })); if (error) setError(''); };
 
   const validate = () => {
     if (!form.full_name.trim())  return 'Full name is required.';
     if (!form.username.trim())   return 'Username is required.';
     if (!/^[a-zA-Z0-9_]+$/.test(form.username)) return 'Username: letters, numbers, and underscores only.';
+    if (form.username.trim().length < 3 || form.username.trim().length > 40) return 'Username must be 3 to 40 characters.';
     if (!form.mobile.trim())     return 'Mobile number is required.';
     if (form.password.length < 6) return 'Password must be at least 6 characters.';
     if (form.password !== form.confirm) return 'Passwords do not match.';
@@ -51,18 +62,18 @@ export default function RegisterScreen({ navigation }) {
         mobile:    form.mobile.trim(),
       });
     } catch (e) {
-      setError(e?.response?.data?.error || e?.message || 'Registration failed. Try again.');
+      setError(friendlyError(e, 'Registration failed. Try again.'));
     } finally {
       setLoading(false);
     }
   };
 
   const FIELDS = [
-    { key: 'full_name', label: 'Full Name',       placeholder: 'e.g. Maria Santos',  secure: false, keyboard: 'default'   },
-    { key: 'username',  label: 'Username',         placeholder: 'e.g. maria_santos',  secure: false, keyboard: 'default'   },
-    { key: 'mobile',    label: 'Mobile Number',    placeholder: 'e.g. 09171234567',   secure: false, keyboard: 'phone-pad' },
-    { key: 'password',  label: 'Password',         placeholder: 'Minimum 6 characters', secure: true, keyboard: 'default'  },
-    { key: 'confirm',   label: 'Confirm Password', placeholder: 'Re-enter password',  secure: true,  keyboard: 'default'   },
+    { key: 'full_name', label: 'Full name',        icon: 'person-outline',      placeholder: 'e.g. Maria Santos',    secure: false, keyboard: 'default'   },
+    { key: 'username',  label: 'Username',         icon: 'at-outline',          placeholder: 'e.g. maria_santos',    secure: false, keyboard: 'default'   },
+    { key: 'mobile',    label: 'Mobile number',    icon: 'call-outline',        placeholder: 'e.g. 09171234567',     secure: false, keyboard: 'phone-pad' },
+    { key: 'password',  label: 'Password',         icon: 'lock-closed-outline', placeholder: 'At least 6 characters', secure: true, keyboard: 'default'  },
+    { key: 'confirm',   label: 'Confirm password', icon: 'lock-closed-outline', placeholder: 'Type it again',        secure: true,  keyboard: 'default'   },
   ];
 
   return (
@@ -71,6 +82,7 @@ export default function RegisterScreen({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.pageBg} />
+      <GradientFill name="page" glow="light" start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -81,7 +93,7 @@ export default function RegisterScreen({ navigation }) {
 
           {/* Logo */}
           <View style={styles.logoSection}>
-            <Logo size="full" />
+            <Logo size="full" onDark={IS_DARK} />
           </View>
 
           {/* Card */}
@@ -90,37 +102,38 @@ export default function RegisterScreen({ navigation }) {
             {/* Passenger badge */}
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
-              <Text style={styles.badgeText}>Passenger Registration</Text>
+              <Text style={styles.badgeText}>Passenger account</Text>
             </View>
 
-            <Text style={styles.cardTitle}>Create Account</Text>
+            <Text style={styles.cardTitle}>Create your account</Text>
+            <Text style={styles.cardSub}>It's free. See how full each jeep is before it arrives.</Text>
 
             {/* Fields */}
-            {FIELDS.map(({ key, label, placeholder, secure, keyboard }) => (
-              <View key={key} style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>{label}</Text>
-                <View style={[
-                  styles.inputWrap,
-                  form[key] && { borderColor: COLORS.primary },
-                ]}>
-                  <TextInput
-                    style={styles.input}
-                    value={form[key]}
-                    onChangeText={set(key)}
-                    placeholder={placeholder}
-                    placeholderTextColor={COLORS.textMuted}
-                    secureTextEntry={secure && !showPw}
-                    keyboardType={keyboard}
-                    autoCapitalize={key === 'full_name' ? 'words' : 'none'}
-                    autoCorrect={false}
-                  />
-                  {secure && key === 'password' && (
-                    <TouchableOpacity onPress={() => setShowPw(v => !v)} style={styles.peekBtn}>
-                      <Text style={styles.peekText}>{showPw ? 'Hide' : 'Show'}</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
+            {FIELDS.map(({ key, label, icon, placeholder, secure, keyboard }, i) => (
+              <Field
+                key={key}
+                ref={(r) => { inputs.current[key] = r; }}
+                label={label}
+                icon={icon}
+                secure={secure}
+                value={form[key]}
+                returnKeyType={i < FIELDS.length - 1 ? 'next' : 'done'}
+                blurOnSubmit={i === FIELDS.length - 1}
+                onSubmitEditing={() => {
+                  const next = FIELDS[i + 1];
+                  if (next) inputs.current[next.key]?.focus();
+                  else handleRegister();
+                }}
+                maxLength={key === 'mobile' ? 13 : 60}
+                onChangeText={set(key)}
+                placeholder={placeholder}
+                keyboardType={keyboard}
+                autoCapitalize={key === 'full_name' ? 'words' : 'none'}
+                autoCorrect={false}
+                hint={key === 'confirm' && form.confirm
+                  ? (form.confirm === form.password ? 'Passwords match' : "Passwords don't match yet")
+                  : undefined}
+              />
             ))}
 
             {/* Error */}
@@ -131,23 +144,13 @@ export default function RegisterScreen({ navigation }) {
             )}
 
             {/* Submit */}
-            <TouchableOpacity
-              style={[styles.submitBtn, loading && { opacity: 0.7 }]}
-              onPress={handleRegister}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.submitBtnText}>Create Account</Text>
-              }
-            </TouchableOpacity>
+            <Button label="Create account" icon="checkmark" onPress={handleRegister} loading={loading} style={{ marginTop: 4, marginBottom: 20 }} />
 
             {/* Back to login */}
             <View style={styles.loginRow}>
               <Text style={styles.loginText}>Already have an account? </Text>
               <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.75}>
-                <Text style={styles.loginLink}>Log In</Text>
+                <Text style={styles.loginLink}>Sign in</Text>
               </TouchableOpacity>
             </View>
 
@@ -159,13 +162,13 @@ export default function RegisterScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   root:   { flex: 1, backgroundColor: COLORS.pageBg },
   scroll: { flexGrow: 1, paddingHorizontal: 24, paddingVertical: 48 },
 
   // Logo
   logoSection: { alignItems: 'center', marginBottom: 24 },
-  tagline:     { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted, marginTop: 8, letterSpacing: 0.4 },
+  tagline:     { fontSize: 13.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textMuted, marginTop: 8, letterSpacing: 0.4 },
 
   // Card — matches web glass-card
   card: {
@@ -181,16 +184,16 @@ const styles = StyleSheet.create({
   // Passenger badge
   badge:     { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 14 },
   badgeDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
-  badgeText: { fontSize: 11, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.8 },
+  badgeText: { fontSize: 15.5, fontFamily: 'Outfit_SemiBold', fontWeight: '700', color: COLORS.accent },
 
-  cardTitle: { fontSize: 22, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary, marginBottom: 4 },
-  cardSub:   { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary, lineHeight: 19, marginBottom: 22 },
+  cardTitle: { ...TYPE.title, color: COLORS.textPrimary, marginBottom: 4 },
+  cardSub:   { ...TYPE.body, color: COLORS.textSecondary, marginBottom: 22 },
 
   // Fields — matches web input style
   fieldGroup:  { marginBottom: 16 },
   fieldLabel:  {
-    fontSize: 10, fontFamily: 'Outfit_SemiBold', fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 0.9,
+    fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '700',
+    
     color: COLORS.textSecondary, marginBottom: 7,
   },
   inputWrap: {
@@ -198,9 +201,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md,
     backgroundColor: COLORS.inputBg, paddingHorizontal: 14, height: 52,
   },
-  input:    { flex: 1, fontSize: 14, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textPrimary },
+  input:    { flex: 1, fontSize: 15.5, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textPrimary },
   peekBtn:  { paddingHorizontal: 6, paddingVertical: 4 },
-  peekText: { fontSize: 12, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
+  peekText: { fontSize: 13.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textSecondary },
 
   // Error
   errorBox:  {
@@ -208,11 +211,11 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: COLORS.dangerBorder,
     padding: 12, marginBottom: 14,
   },
-  errorText: { fontSize: 13, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.danger, lineHeight: 18 },
+  errorText: { fontSize: 14.5, fontFamily: 'Outfit_SemiBold', fontWeight: '600', color: COLORS.textPrimary, lineHeight: 20 },
 
   // Submit — matches web button: dark → primary on hover
   submitBtn: {
-    backgroundColor: COLORS.dark,
+    backgroundColor: COLORS.primary,
     borderRadius:    RADIUS.md,
     height:          52,
     justifyContent:  'center',
@@ -222,12 +225,12 @@ const styles = StyleSheet.create({
     ...SHADOW.button,
     shadowColor:     COLORS.dark,
   },
-  submitBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
+  submitBtnText: { color: '#fff', fontSize: 16, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', letterSpacing: 0.3 },
 
   // Back to login
   loginRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  loginText: { fontSize: 13, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
-  loginLink: { fontSize: 13, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.primary },
+  loginText: { fontSize: 15.5, fontFamily: 'Outfit_Regular', fontWeight: '500', color: COLORS.textSecondary },
+  loginLink: { fontSize: 15.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.accent, paddingVertical: 6 },
 
-  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 8 },
-});
+  footer: { textAlign: 'center', color: COLORS.textMuted, fontSize: 12.5, fontFamily: 'Outfit_Regular', fontWeight: '500', marginTop: 8 },
+}));
