@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, StatusBar, ActivityIndicator, Animated,
-  KeyboardAvoidingView, Platform,
+  Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { friendlyError } from '../api/errors';
@@ -10,8 +10,10 @@ import Logo from '../components/Logo';
 import { COLORS, SHADOW, RADIUS, TYPE, IS_DARK, themed } from '../theme';
 import { Field, Button } from '../components/ui';
 import { GradientFill } from '../components/Gradient';
+import useKeyboardScroll from '../hooks/useKeyboardScroll';
 
 export default function RegisterScreen({ navigation }) {
+  const kb = useKeyboardScroll();          // keeps the box you type in above the keyboard
   const { register } = useAuth();
 
   const [form,    setForm]    = useState({ full_name: '', username: '', mobile: '', password: '', confirm: '' });
@@ -77,14 +79,12 @@ export default function RegisterScreen({ navigation }) {
   ];
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View style={styles.root}>
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={COLORS.pageBg} />
       <GradientFill name="page" glow="light" start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} />
 
       <ScrollView
+        {...kb.scrollProps}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -157,8 +157,10 @@ export default function RegisterScreen({ navigation }) {
           </View>
 
         </Animated.View>
+        {/* Room under the form while the keyboard is open, so every box can scroll above it */}
+        <View style={{ height: kb.height }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

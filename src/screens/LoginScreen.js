@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView, Alert, StatusBar, Animated, Easing,
+  StyleSheet, ActivityIndicator, Platform, ScrollView, Alert, StatusBar, Animated, Easing,
 } from 'react-native';
 import { useAuth, getLastUsername } from '../context/AuthContext';
 import { friendlyError } from '../api/errors';
@@ -12,8 +11,10 @@ import Logo from '../components/Logo';
 import Icon from '../components/Icon';
 import { Field, Button } from '../components/ui';
 import { GradientFill } from '../components/Gradient';
+import useKeyboardScroll from '../hooks/useKeyboardScroll';
 
 export default function LoginScreen({ navigation }) {
+  const kb = useKeyboardScroll();          // keeps the box you type in above the keyboard
   const { login, pendingRole, roleSwitch } = useAuth();
 
   const [role,     setRole]     = useState(pendingRole || 'passenger');
@@ -133,10 +134,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.root}>
       <StatusBar barStyle={COLORS.statusBar} backgroundColor={theme.gradFrom} />
 
       {/* Soft gradient background with color spots */}
@@ -155,6 +153,7 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
 
       <ScrollView
+        {...kb.scrollProps}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -274,8 +273,10 @@ export default function LoginScreen({ navigation }) {
         )}
 
 
+        {/* Room under the form while the keyboard is open, so every box can scroll above it */}
+        <View style={{ height: kb.height }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
