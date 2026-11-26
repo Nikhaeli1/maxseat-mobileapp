@@ -112,6 +112,20 @@ export const submitInterception = async (plate, action, notes) => {
   return res.data;
 };
 
+// ─── ENFORCER: PASSENGER REPORTS ──────────────────────────────────────────────
+// Violations passengers reported in the app. LTFRB marks them under review or resolved;
+// the passenger sees the status (and the note) in My Reports.
+export const fetchPassengerReports = async () => {
+  const res = await api.get('/api/mobile/passenger-reports');
+  return res.data;
+};
+
+export const setPassengerReportStatus = async (serial, status, note) => {
+  const body = note === undefined ? { status } : { status, note };
+  const res = await api.post(`/api/mobile/passenger-reports/${encodeURIComponent(serial)}/status`, body);
+  return res.data;
+};
+
 // ─── PASSENGER AUTH ───────────────────────────────────────────────────────────
 export const registerPassenger = async ({ username, password, full_name, mobile }) => {
   const res = await api.post('/api/passenger/register', { username, password, full_name, mobile });

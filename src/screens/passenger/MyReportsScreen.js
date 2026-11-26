@@ -24,10 +24,15 @@ const TYPE_CONFIG = byMode(() => ({
   other:    { icon: 'alert-circle-outline', label: 'Other Violation',       color: COLORS.textSecondary, bg: COLORS.pageBg },
 }));
 
+// open = sent, waiting for LTFRB. reviewed = LTFRB is looking into it. resolved = action taken.
 const STATUS_CONFIG = byMode(() => ({
-  open:   { color: T.accent, bg: T.primaryLight, label: 'Open' },
-  closed: { color: COLORS.success, bg: COLORS.successBg,      label: 'Resolved' },
+  open:     { color: T.accent,        bg: T.primaryLight,     icon: 'paper-plane-outline',      label: 'Sent' },
+  reviewed: { color: COLORS.warning,  bg: COLORS.warningBg,   icon: 'search-outline',           label: 'Under review' },
+  resolved: { color: COLORS.success,  bg: COLORS.successBg,   icon: 'checkmark-circle-outline', label: 'Resolved' },
+  closed:   { color: COLORS.success,  bg: COLORS.successBg,   icon: 'checkmark-circle-outline', label: 'Resolved' },
 }));
+const isDone = (c) => c.status === 'resolved' || c.status === 'closed';
+const when = (iso) => (iso ? iso.replace('T', ' ').slice(0, 16) : '—');
 
 export default function MyReportsScreen() {
   const { user }   = useAuth();
@@ -41,8 +46,8 @@ export default function MyReportsScreen() {
   const scrollRef = useRef(null);
   useScrollToTop(scrollRef);
 
-  const openCount   = complaints.filter(c => c.status === 'open').length;
-  const closedCount = complaints.filter(c => c.status !== 'open').length;
+  const openCount   = complaints.filter(c => !isDone(c)).length;
+  const closedCount = complaints.filter(isDone).length;
 
   const renderItem = ({ item }) => {
     const tc = TYPE_CONFIG[item.complaint] || TYPE_CONFIG.other;
@@ -58,6 +63,7 @@ export default function MyReportsScreen() {
             <Text style={styles.serial}>{item.serial}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: sc.bg }]}>
+            <Icon name={sc.icon} size={13} color={sc.color} />
             <Text style={[styles.statusText, { color: sc.color }]}>{sc.label}</Text>
           </View>
         </View>
@@ -67,7 +73,7 @@ export default function MyReportsScreen() {
         <View style={styles.infoGrid}>
           {[
             ['Plate', item.plate],
-            ['Sent',  item.timestamp ? item.timestamp.replace('T', ' ').slice(0, 16) : '—'],
+            ['Sent',  when(item.timestamp)],
             ['Pax',   item.passengers != null ? `${item.passengers}/${item.capacity}` : '—'],
             ['Temp',  item.temp != null ? `${item.temp}°C` : '—'],
           ].map(([label, value]) => (
@@ -81,6 +87,15 @@ export default function MyReportsScreen() {
         {item.description ? (
           <View style={[styles.descBox, { backgroundColor: T.primaryLight }]}>
             <Text style={[styles.descText, { color: T.primaryDark }]}>"{item.description}"</Text>
+          </View>
+        ) : null}
+
+        {item.status !== 'open' && item.status_at ? (
+          <View style={styles.updateBox}>
+            <Text style={styles.updateHead}>
+              {isDone(item) ? 'Resolved by LTFRB' : 'LTFRB is reviewing this'} · {when(item.status_at)}
+            </Text>
+            {item.note ? <Text style={styles.updateNote}>{item.note}</Text> : null}
           </View>
         ) : null}
       </View>
@@ -103,7 +118,7 @@ export default function MyReportsScreen() {
       <View style={styles.statRow}>
         {[
           { value: complaints.length, label: 'Total',    color: COLORS.textPrimary },
-          { value: openCount,         label: 'Open',     color: T.accent },
+          { value: openCount,         label: 'Waiting',  color: T.accent },
           { value: closedCount,       label: 'Resolved', color: COLORS.success },
         ].map(({ value, label, color }, i) => (
           <View key={label} style={[styles.statCard, i > 0 && styles.statCardBorder]}>
@@ -183,7 +198,7 @@ const styles = themed(() => ({
   typeIcon:   { width: 46, height: 46, borderRadius: RADIUS.md, justifyContent: 'center', alignItems: 'center' },
   typeName:   { fontSize: 14.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
   serial:     { fontSize: 12.5, color: COLORS.textMuted, fontFamily: 'Outfit_SemiBold', fontWeight: '600', marginTop: 2 },
-  statusBadge:{ borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4 },
+  statusBadge:{ borderRadius: RADIUS.badge, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
   statusText: { fontSize: 12, fontFamily: 'Outfit_ExtraBold', fontWeight: '800' },
   divider:    { height: 1, backgroundColor: COLORS.borderLight, marginBottom: 12 },
 
@@ -194,4 +209,8 @@ const styles = themed(() => ({
 
   descBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10 },
   descText: { fontSize: 13.5, fontStyle: 'italic', lineHeight: 17 },
+
+  updateBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.pageBg },
+  updateHead: { fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
+  updateNote: { fontSize: 13.5, lineHeight: 19, color: COLORS.textSecondary, marginTop: 4 },
 }));
