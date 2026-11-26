@@ -135,7 +135,12 @@ export default function PassengerReportsScreen() {
         {st !== 'open' && item.status_at ? (
           <View style={styles.updateBox}>
             <Text style={styles.updateHead}>{sc.label} · {when(item.status_at)}</Text>
-            {item.note ? <Text style={styles.updateNote}>{item.note}</Text> : null}
+            {st === 'resolved' ? (
+              <>
+                <Text style={styles.actionLabel}>Action taken</Text>
+                <Text style={styles.updateNote}>{item.note || 'No details were added.'}</Text>
+              </>
+            ) : item.note ? <Text style={styles.updateNote}>{item.note}</Text> : null}
           </View>
         ) : null}
 
@@ -237,11 +242,11 @@ export default function PassengerReportsScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Resolve {resolve?.serial}?</Text>
             <Text style={styles.modalSub}>
-              {resolve?.type_label} · {resolve?.plate}. Add what was done (optional). The passenger sees this note.
+              {resolve?.type_label} · {resolve?.plate}. Write the action taken. The passenger sees it in My Reports.
             </Text>
             <TextInput
               style={styles.noteInput}
-              placeholder="Example: Driver cited for overloading at Cogon."
+              placeholder="Action taken, e.g. Driver cited for overloading at Cogon."
               placeholderTextColor={COLORS.textMuted}
               value={note}
               onChangeText={setNote}
@@ -311,6 +316,7 @@ const styles = themed(() => ({
   updateBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.pageBg },
   updateHead: { fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
   updateNote: { fontSize: 13.5, lineHeight: 19, color: COLORS.textSecondary, marginTop: 4 },
+  actionLabel:{ fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
 
   actions:        { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 14 },
   btn:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.md, paddingHorizontal: 16, height: 44, overflow: 'hidden' },

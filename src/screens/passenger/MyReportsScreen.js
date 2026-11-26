@@ -95,7 +95,12 @@ export default function MyReportsScreen() {
             <Text style={styles.updateHead}>
               {isDone(item) ? 'Resolved by LTFRB' : 'LTFRB is reviewing this'} · {when(item.status_at)}
             </Text>
-            {item.note ? <Text style={styles.updateNote}>{item.note}</Text> : null}
+            {isDone(item) ? (
+              <>
+                <Text style={styles.actionLabel}>Action taken</Text>
+                <Text style={styles.updateNote}>{item.note || 'LTFRB resolved this report without adding details.'}</Text>
+              </>
+            ) : item.note ? <Text style={styles.updateNote}>{item.note}</Text> : null}
           </View>
         ) : null}
       </View>
@@ -213,4 +218,5 @@ const styles = themed(() => ({
   updateBox:  { marginTop: 10, borderRadius: RADIUS.sm, padding: 10, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.pageBg },
   updateHead: { fontSize: 12.5, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textPrimary },
   updateNote: { fontSize: 13.5, lineHeight: 19, color: COLORS.textSecondary, marginTop: 4 },
+  actionLabel:{ fontSize: 11, fontFamily: 'Outfit_ExtraBold', fontWeight: '800', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
 }));
