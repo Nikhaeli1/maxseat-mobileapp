@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, Alert, ActivityIndicator, StatusBar,
-  KeyboardAvoidingView, Platform,
+  Platform,
 } from 'react-native';
 import LeafletMap from '../../components/LeafletMap';
 import { submitInterception } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
 import Icon from '../../components/Icon';
 import { GradientFill } from '../../components/Gradient';
+import useKeyboardScroll, { fieldFocused } from '../../hooks/useKeyboardScroll';
 import BusSeats from '../../components/BusSeats';
 import StatusBadge from '../../components/StatusBadge';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, byMode } from '../../theme';
@@ -23,6 +24,7 @@ const ACTIONS = byMode(() => ([
 ]));
 
 export default function ActionScreen({ route, navigation }) {
+  const kb = useKeyboardScroll();          // keeps the box you type in above the keyboard
   const { order }   = route.params;
   const [action, setAction] = useState('');
   const [notes,  setNotes]  = useState('');
@@ -81,7 +83,7 @@ export default function ActionScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
@@ -106,7 +108,7 @@ export default function ActionScreen({ route, navigation }) {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+      <ScrollView {...kb.scrollProps} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
 
         {/* ── MAP ─────────────────────────────────────────────────────── */}
         <View style={styles.mapCard}>
@@ -202,6 +204,7 @@ export default function ActionScreen({ route, navigation }) {
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>Officer Remarks</Text>
           <TextInput
+            onFocus={fieldFocused}
             style={styles.notesInput}
             placeholder="Exact location, officer notes, passenger count, driver response"
             placeholderTextColor={COLORS.textMuted}
@@ -230,8 +233,9 @@ export default function ActionScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
+        <View style={{ height: kb.height }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

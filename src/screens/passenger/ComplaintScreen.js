@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, Alert, ActivityIndicator, StatusBar,
-  KeyboardAvoidingView, Platform,
+  Platform,
 } from 'react-native';
 import { submitComplaint } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
 import { showToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
 import { GradientFill } from '../../components/Gradient';
+import useKeyboardScroll, { fieldFocused } from '../../hooks/useKeyboardScroll';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, IS_DARK } from '../../theme';
 
 const T = ROLE.passenger;
@@ -22,6 +23,7 @@ const COMPLAINT_TYPES = [
 ];
 
 export default function ComplaintScreen({ route, navigation }) {
+  const kb = useKeyboardScroll();          // keeps the box you type in above the keyboard
   const { plate, puv }              = route.params;
   const [type,        setType]      = useState('');
   const [description, setDesc]      = useState('');
@@ -73,7 +75,7 @@ export default function ComplaintScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       <View style={styles.header}>
@@ -87,7 +89,7 @@ export default function ComplaintScreen({ route, navigation }) {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+      <ScrollView {...kb.scrollProps} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
 
         {/* PUV SUMMARY */}
         {puv && (
@@ -141,6 +143,7 @@ export default function ComplaintScreen({ route, navigation }) {
         <View style={styles.card}>
           <Text style={[styles.sectionLabel, { color: T.accent }]}>Additional Details</Text>
           <TextInput
+            onFocus={fieldFocused}
             style={styles.textArea}
             placeholder="What did you see? Standing passengers, driver behavior, exact location (optional)"
             placeholderTextColor={COLORS.textMuted}
@@ -176,8 +179,9 @@ export default function ComplaintScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
+        <View style={{ height: kb.height }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

@@ -233,7 +233,7 @@ export default function PassengerReportsScreen() {
 
       {/* RESOLVE: optional note the passenger will see */}
       <Modal visible={!!resolve} transparent animationType="fade" onRequestClose={() => setResolve(null)}>
-        <KeyboardAvoidingView style={styles.modalBack} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={styles.modalBack} behavior="padding">
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Resolve {resolve?.serial}?</Text>
             <Text style={styles.modalSub}>

@@ -2,6 +2,7 @@ import React, { useState, forwardRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Icon from './Icon';
 import { GradientFill } from './Gradient';
+import { fieldFocused } from '../hooks/useKeyboardScroll';
 import { COLORS, RADIUS, FONTS, SHADOW, TYPE, themed } from '../theme';
 
 /**
@@ -31,7 +32,7 @@ export const Field = forwardRef(function Field(
           secureTextEntry={!!secure && !show}
           autoCapitalize={secure ? 'none' : input.autoCapitalize}
           autoCorrect={secure ? false : input.autoCorrect}
-          onFocus={(e) => { setFocused(true); input.onFocus && input.onFocus(e); }}
+          onFocus={(e) => { setFocused(true); fieldFocused(); input.onFocus && input.onFocus(e); }}
           onBlur={(e) => { setFocused(false); input.onBlur && input.onBlur(e); }}
         />
         {secure && (

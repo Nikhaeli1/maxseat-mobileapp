@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, StatusBar, Alert, ActivityIndicator,
-  KeyboardAvoidingView, Platform,
+  Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { updatePassengerProfile, changePassengerPassword } from '../../api/apiService';
@@ -14,11 +14,13 @@ import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
 import { Field } from '../../components/ui';
 import Gradient, { GradientFill } from '../../components/Gradient';
+import useKeyboardScroll, { fieldFocused } from '../../hooks/useKeyboardScroll';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
 
 const T = ROLE.passenger;
 
 export default function ProfileScreen() {
+  const kb = useKeyboardScroll();          // keeps the box you type in above the keyboard
   const { user, logout, switchRole, requestDashTutorial, updateUser } = useAuth();
   const navigation = useNavigation();
 
@@ -94,7 +96,7 @@ export default function ProfileScreen() {
     ]);
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       {/* HEADER (gradient hero) */}
@@ -118,7 +120,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView {...kb.scrollProps} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
         {/* ACCOUNT INFO */}
         <View style={styles.card}>
@@ -145,6 +147,7 @@ export default function ProfileScreen() {
           <View style={styles.inputWrap}>
             <Icon name="call-outline" size={17} color={COLORS.textMuted} style={styles.inputIcon} />
             <TextInput
+              onFocus={fieldFocused}
               style={styles.input}
               value={mobile}
               onChangeText={setMobile}
@@ -268,8 +271,9 @@ export default function ProfileScreen() {
 
         <Text style={styles.footer}>MaxSeat Alert System · Cagayan de Oro City</Text>
         <View style={{ height: 32 }} />
+        <View style={{ height: kb.height }} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
