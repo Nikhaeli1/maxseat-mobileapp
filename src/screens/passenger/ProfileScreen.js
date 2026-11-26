@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, StatusBar, Alert, ActivityIndicator,
+  StyleSheet, StatusBar, ActivityIndicator,
   Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -16,6 +16,7 @@ import { Field } from '../../components/ui';
 import Gradient, { GradientFill } from '../../components/Gradient';
 import useKeyboardScroll, { fieldFocused } from '../../hooks/useKeyboardScroll';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
+import { showAlert } from '../../components/Dialog';
 
 const T = ROLE.passenger;
 
@@ -60,16 +61,17 @@ export default function ProfileScreen() {
       await updateUser({ mobile: res?.mobile ?? mobile.trim() });
       showToast('Mobile number saved');
     } catch (err) {
-      Alert.alert("Couldn't save", friendlyError(err, 'Could not save profile.'));
+      showAlert("Couldn't save", friendlyError(err, 'Could not save profile.'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleChangePassword = async () => {
-    if (!currentPw || !newPw || !confirmPw) { Alert.alert('Required', 'Fill in all password fields.'); return; }
-    if (newPw !== confirmPw) { Alert.alert('Mismatch', 'New passwords do not match.'); return; }
-    if (newPw.length < 6)    { Alert.alert('Too Short', 'Password must be at least 6 characters.'); return; }
+    const pwIcon = { icon: 'key-outline', tone: 'info' };
+    if (!currentPw || !newPw || !confirmPw) { showAlert('Fill in all 3 boxes', 'Current password, new password, and the new one again.', null, pwIcon); return; }
+    if (newPw !== confirmPw) { showAlert("Passwords don't match", 'Type the same new password in both boxes.', null, pwIcon); return; }
+    if (newPw.length < 6)    { showAlert('Password too short', 'Use at least 6 characters.', null, pwIcon); return; }
     setPwSaving(true);
     try {
       await changePassengerPassword({ current_password: currentPw, new_password: newPw });
@@ -77,23 +79,23 @@ export default function ProfileScreen() {
       setShowPwForm(false);
       setCurrentPw(''); setNewPw(''); setConfirmPw('');
     } catch (err) {
-      Alert.alert("Couldn't change password", friendlyError(err, 'Could not change password.'));
+      showAlert("Couldn't change password", friendlyError(err, 'Could not change password.'));
     } finally {
       setPwSaving(false);
     }
   };
 
   const handleLogout = () =>
-    Alert.alert('Log Out', 'End your session?', [
+    showAlert('Log out?', 'You can sign back in any time.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Log Out', style: 'destructive', onPress: logout },
-    ]);
+      { text: 'Log out', style: 'destructive', onPress: logout },
+    ], { icon: 'log-out-outline', tone: 'danger' });
 
   const handleSwitchRole = () =>
-    Alert.alert('Switch to Enforcer Mode', 'This will end your passenger session.', [
+    showAlert('Switch to Enforcer mode?', 'This ends your passenger session.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Switch', onPress: () => switchRole('enforcer') },
-    ]);
+    ], { icon: 'swap-horizontal', tone: 'question' });
 
   return (
     <View style={styles.root}>

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Animated } from 'react-native';
 import RoleSwitchOverlay from './src/components/RoleSwitchOverlay';
 import { ToastHost } from './src/components/Toast';
+import { DialogHost } from './src/components/Dialog';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Font from 'expo-font';
@@ -144,6 +145,7 @@ function ThemedShell() {
       </TutorialProvider>
       <RoleSwitchHost />
       <ToastHost />
+      <DialogHost />
     </View>
   );
 }

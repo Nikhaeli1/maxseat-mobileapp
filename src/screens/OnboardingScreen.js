@@ -8,15 +8,20 @@
  * Android architecture a native-driven opacity can be reset to 0 by a
  * re-render, which made slides go blank. Nothing important ever starts
  * invisible: if an animation stalls, the content is still on screen.
+ *
+ * Slide change = ONE short animation (fade + small slide in). The new slide
+ * mounts first, then the animation starts, so the two never fight for frames.
+ * No Android elevation inside the moving area: a faded view with an elevation
+ * shadow draws a thick grey box around it, which is what looked "heavy".
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  Animated, Dimensions, StatusBar, Easing,
+  View, Text, TouchableOpacity,
+  Animated, Dimensions, StatusBar, Easing, Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { COLORS, RADIUS, SHADOW, FONTS, IS_DARK, themed } from '../theme';
+import { COLORS, RADIUS, FONTS, IS_DARK, themed } from '../theme';
 import BusSeats from '../components/BusSeats';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
@@ -53,17 +58,9 @@ function useLoop(duration = 1600) {
   return v;
 }
 
-// Card that springs in with a small scale. Never starts invisible.
+// The card each scene sits on. It moves with the slide, so it has no animation of its own.
 function Stage({ children, style }) {
-  const s = useRef(new Animated.Value(0.94)).current;
-  useEffect(() => {
-    Animated.spring(s, { toValue: 1, tension: 70, friction: 9, useNativeDriver: false }).start();
-  }, [s]);
-  return (
-    <Animated.View style={[ui.stage, style, { transform: [{ scale: s }] }]}>
-      {children}
-    </Animated.View>
-  );
+  return <View style={[ui.stage, style]}>{children}</View>;
 }
 
 function Chip({ label, kind }) {
@@ -403,36 +400,45 @@ export default function OnboardingScreen() {
   const slides = role === 'enforcer' ? ENFORCER_SLIDES : PASSENGER_SLIDES;
 
   const [idx, setIdx] = useState(0);
-  const busy = useRef(false);
+  const [dir, setDir] = useState(1);        // 1 = forward, -1 = back
+  const [moving, setMoving] = useState(false);
 
-  // JS-driven slide transition. Values only dip briefly; if anything stalls,
-  // the end state is visible because every value rests at "shown".
-  const fade = useRef(new Animated.Value(1)).current;
-  const dx   = useRef(new Animated.Value(0)).current;
+  // One value drives the whole slide change: 0 = just swapped, 1 = settled.
+  // It rests at 1, so if anything stalls the slide is fully shown.
+  const enter = useRef(new Animated.Value(1)).current;
+  const safety = useRef(null);
 
   const goTo = (next) => {
-    if (busy.current || next === idx || next < 0 || next >= slides.length) return;
-    busy.current = true;
-    const dir = next > idx ? 1 : -1;
-    Animated.parallel([
-      Animated.timing(fade, { toValue: 0.15, duration: 140, useNativeDriver: false }),
-      Animated.timing(dx,   { toValue: -24 * dir, duration: 140, easing: ease, useNativeDriver: false }),
-    ]).start(() => {
-      setIdx(next);
-      dx.setValue(28 * dir);
-      Animated.parallel([
-        Animated.timing(fade, { toValue: 1, duration: 260, useNativeDriver: false }),
-        Animated.spring(dx,   { toValue: 0, tension: 80, friction: 11, useNativeDriver: false }),
-      ]).start();
-      busy.current = false;
-    });
-    // Safety net: never leave the slide half faded
-    setTimeout(() => { busy.current = false; fade.setValue(1); }, 900);
+    if (next === idx || next < 0 || next >= slides.length) return;
+    enter.stopAnimation();
+    setDir(next > idx ? 1 : -1);
+    setIdx(next);
   };
+
+  // Runs after the new slide is on screen, so mounting it never steals frames from the animation
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return undefined; }
+    enter.setValue(0);
+    setMoving(true);
+    const anim = Animated.timing(enter, { toValue: 1, duration: 260, easing: ease, useNativeDriver: false });
+    anim.start(() => setMoving(false));
+    clearTimeout(safety.current);
+    safety.current = setTimeout(() => { enter.setValue(1); setMoving(false); }, 700);
+    return () => { anim.stop(); clearTimeout(safety.current); };
+  }, [idx, enter]);
 
   const finish = () => completeOnboarding(role);
   const { Scene, title, sub } = slides[idx];
   const isLast = idx === slides.length - 1;
+
+  // Same element between renders, so the live demos don't restart when "moving" flips
+  const scene = useMemo(() => <Scene key={idx} />, [Scene, idx]);
+  const opacity = enter.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] });
+  const sceneX  = enter.interpolate({ inputRange: [0, 1], outputRange: [22 * dir, 0] });
+  const textX   = enter.interpolate({ inputRange: [0, 1], outputRange: [12 * dir, 0] });
+  // Android: draw the moving area as one flat picture while it fades (smooth, no shadow artifacts)
+  const flat = Platform.OS === 'android' ? { renderToHardwareTextureAndroid: moving } : null;
 
   return (
     <View style={styles.root}>
@@ -450,11 +456,11 @@ export default function OnboardingScreen() {
         ) : <View />}
       </View>
 
-      <Animated.View style={[styles.sceneArea, { opacity: fade, transform: [{ translateX: dx }] }]}>
-        <Scene key={idx} />
+      <Animated.View {...flat} style={[styles.sceneArea, { opacity, transform: [{ translateX: sceneX }] }]}>
+        {scene}
       </Animated.View>
 
-      <Animated.View style={[styles.textArea, { opacity: fade }]}>
+      <Animated.View {...flat} style={[styles.textArea, { opacity, transform: [{ translateX: textX }] }]}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.sub}>{sub}</Text>
       </Animated.View>
@@ -487,7 +493,12 @@ export default function OnboardingScreen() {
 const ui = themed(() => ({
   stage: {
     width: W - 48, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, padding: 16,
-    borderWidth: IS_DARK ? 1 : 0, borderColor: COLORS.border, ...SHADOW.md,
+    // Thin outline instead of a drop shadow (see the note at the top). iOS keeps a faint one.
+    borderWidth: 1, borderColor: IS_DARK ? COLORS.border : 'rgba(20,33,27,0.07)',
+    ...Platform.select({
+      ios: { shadowColor: '#14211B', shadowOffset: { width: 0, height: 6 }, shadowOpacity: IS_DARK ? 0.25 : 0.05, shadowRadius: 14 },
+      default: {},
+    }),
   },
   route:      { fontSize: 14.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginTop: 6, marginBottom: 18 },
   featureRow: { flexDirection: 'row', gap: 10 },
@@ -562,6 +573,6 @@ const styles = themed(() => ({
   dot:       { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.border },
   dotOn:     { width: 22, backgroundColor: COLORS.primary },
   back:      { fontSize: 15.5, fontFamily: FONTS.semiBold, color: COLORS.textSecondary },
-  nextBtn:   { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 26, height: 48, justifyContent: 'center', alignItems: 'center', ...SHADOW.button },
+  nextBtn:   { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 26, height: 48, justifyContent: 'center', alignItems: 'center' },
   nextTxt:   { color: '#FFFFFF', fontSize: 16, fontFamily: FONTS.extraBold },
 }));

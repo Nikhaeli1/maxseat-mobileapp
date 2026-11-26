@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, Alert, ActivityIndicator, StatusBar,
+  StyleSheet, ActivityIndicator, StatusBar,
   Platform,
 } from 'react-native';
 import { submitComplaint } from '../../api/apiService';
 import { friendlyError } from '../../api/errors';
-import { showToast } from '../../components/Toast';
 import Icon from '../../components/Icon';
 import { GradientFill } from '../../components/Gradient';
 import useKeyboardScroll, { fieldFocused } from '../../hooks/useKeyboardScroll';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, IS_DARK } from '../../theme';
+import { showAlert } from '../../components/Dialog';
 
 const T = ROLE.passenger;
 
@@ -39,38 +39,39 @@ export default function ComplaintScreen({ route, navigation }) {
     const unsub = navigation.addListener('beforeRemove', (e) => {
       if (!dirty || sent.current) return;
       e.preventDefault();
-      Alert.alert('Discard this report?', "You haven't sent it yet.", [
+      showAlert('Discard this report?', "You haven't sent it yet.", [
         { text: 'Keep writing', style: 'cancel' },
         { text: 'Discard', style: 'destructive', onPress: () => navigation.dispatch(e.data.action) },
-      ]);
+      ], { icon: 'trash-outline', tone: 'danger' });
     });
     return unsub;
   }, [navigation, dirty]);
 
   const handleSubmit = async () => {
-    if (!type) { Alert.alert('Required', 'Please select a complaint type.'); return; }
+    if (!type) { showAlert('Pick a problem', 'Choose what happened first.', null, { icon: 'list-outline', tone: 'info' }); return; }
     const selected = COMPLAINT_TYPES.find(c => c.key === type);
-    Alert.alert(
-      'Confirm Report',
-      `Submit a "${selected.label}" report for PUV ${plate}?`,
+    showAlert(
+      'Send this report?',
+      `${selected.label} · PUV ${plate}\n\nIt goes to LTFRB and the cooperative right away.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Submit',
+          text: 'Send report',
           onPress: async () => {
             setSubmitting(true);
             try {
               const result = await submitComplaint(plate, type, description.trim());
               sent.current = true;
-              showToast(`Report sent. Reference ${result.serial}. You can follow it in My Reports.`, { duration: 4200 });
               navigation.goBack();
+              showAlert('Report sent', `Reference ${result.serial}\n\nFollow it in My Reports.`, [{ text: 'Done' }], { tone: 'success' });
             } catch (err) {
-              Alert.alert("Couldn't send the report", friendlyError(err, 'Submission failed. Please try again.'));
+              showAlert("Couldn't send the report", friendlyError(err, 'Submission failed. Please try again.'));
               setSubmitting(false);
             }
           },
         },
-      ]
+      ],
+      { icon: 'paper-plane-outline', tone: 'question' }
     );
   };
 

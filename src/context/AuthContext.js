@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   loginEnforcer, logoutEnforcer, saveToken, getToken, clearToken,
   loginPassenger, logoutPassenger, registerPassenger, setUnauthorizedHandler,
 } from '../api/apiService';
+import { showAlert } from '../components/Dialog';
 
 const AuthContext = createContext(null);
 
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
         setPendingRole(userRef.current.role);
       } catch (_) {}
       setUser(null);
-      Alert.alert('Session expired', 'Please sign in again.');
+      showAlert('Session expired', 'Please sign in again.', [{ text: 'OK' }], { icon: 'time-outline', tone: 'info' });
       setTimeout(() => { busy = false; }, 3000);
     });
     return () => setUnauthorizedHandler(null);

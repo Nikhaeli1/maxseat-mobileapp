@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, Alert, ActivityIndicator, StatusBar,
+  StyleSheet, ActivityIndicator, StatusBar,
   Platform,
 } from 'react-native';
 import LeafletMap from '../../components/LeafletMap';
@@ -13,6 +13,7 @@ import useKeyboardScroll, { fieldFocused } from '../../hooks/useKeyboardScroll';
 import BusSeats from '../../components/BusSeats';
 import StatusBadge from '../../components/StatusBadge';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed, byMode } from '../../theme';
+import { showAlert } from '../../components/Dialog';
 
 const T = ROLE.enforcer;
 const MAX_NOTES = 1000;
@@ -39,46 +40,47 @@ export default function ActionScreen({ route, navigation }) {
     const unsub = navigation.addListener('beforeRemove', (e) => {
       if (!dirty || sent.current) return;
       e.preventDefault();
-      Alert.alert('Discard this report?', "It hasn't been submitted yet.", [
+      showAlert('Discard this report?', "It hasn't been submitted yet.", [
         { text: 'Keep editing', style: 'cancel' },
         { text: 'Discard', style: 'destructive', onPress: () => navigation.dispatch(e.data.action) },
-      ]);
+      ], { icon: 'trash-outline', tone: 'danger' });
     });
     return unsub;
   }, [navigation, dirty]);
 
   const handleSubmit = async () => {
     if (!action) {
-      Alert.alert('Required', 'Please select an enforcement action.');
+      showAlert('Pick an action', 'Choose what you did first.', null, { icon: 'list-outline', tone: 'info' });
       return;
     }
     const selected = ACTIONS.find(a => a.key === action);
-    Alert.alert(
-      'Confirm Submission',
-      `Submit interception report for ${order.plate}?\n\nAction: ${selected?.label}`,
+    showAlert(
+      'Submit this report?',
+      `${order.plate} · ${selected?.label}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Submit',
-          style: 'destructive',
           onPress: async () => {
             setSubmitting(true);
             try {
               const result = await submitInterception(order.plate, action, notes.trim());
               sent.current = true;
-              Alert.alert(
+              showAlert(
                 'Report submitted',
-                `${result.message}\n\nSerial: ${result.serial}`,
-                [{ text: 'OK', onPress: () => navigation.goBack() }]
+                `${result.message}\n\nSerial ${result.serial}`,
+                [{ text: 'Done', onPress: () => navigation.goBack() }],
+                { tone: 'success' }
               );
             } catch (err) {
-              Alert.alert("Couldn't submit", friendlyError(err, 'Submission failed. Please try again.'));
+              showAlert("Couldn't submit", friendlyError(err, 'Submission failed. Please try again.'));
             } finally {
               setSubmitting(false);
             }
           },
         },
-      ]
+      ],
+      { icon: 'clipboard-outline', tone: 'question' }
     );
   };
 

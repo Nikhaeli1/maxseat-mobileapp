@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Platform, ScrollView, Alert, StatusBar, Animated, Easing,
+  StyleSheet, ActivityIndicator, Platform, ScrollView, StatusBar, Animated, Easing,
 } from 'react-native';
 import { useAuth, getLastUsername } from '../context/AuthContext';
 import { friendlyError } from '../api/errors';

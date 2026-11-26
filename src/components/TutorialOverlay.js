@@ -39,7 +39,8 @@ const GAP         = 14;
 const MAX_SPOT_FRAC = 0.45;
 const EST_CARD_H  = 200;
 
-const SPRING = { tension: 70, friction: 12, useNativeDriver: false };
+// Spotlight move: a short eased glide (springs took ~0.7 s to settle and felt slow)
+const GLIDE = { duration: 240, easing: Easing.out(Easing.cubic), useNativeDriver: false };
 
 export default function TutorialOverlay({
   steps       = [],
@@ -59,7 +60,6 @@ export default function TutorialOverlay({
   const aH = useRef(new Animated.Value(0)).current;
 
   const dimFade = useRef(new Animated.Value(0)).current;
-  const pop     = useRef(new Animated.Value(1)).current;   // card scale, cosmetic only
   const slide   = useRef(new Animated.Value(0)).current;   // card offset, cosmetic only
   const halo    = useRef(new Animated.Value(0)).current;
 
@@ -128,6 +128,7 @@ export default function TutorialOverlay({
     let cancelled = false;
     // Never wait more than 900 ms for a measurement: show the card regardless.
     const giveUp = setTimeout(() => { if (!cancelled) setReady(true); }, 900);
+    // First step waits a moment for the screen to lay out; later steps measure right away
     const t = setTimeout(() => {
       measure(step, (rect) => {
         if (cancelled) return;
@@ -137,27 +138,24 @@ export default function TutorialOverlay({
             aX.setValue(rect.x); aY.setValue(rect.y); aW.setValue(rect.w); aH.setValue(rect.h);
           } else {
             Animated.parallel([
-              Animated.spring(aX, { toValue: rect.x, ...SPRING }),
-              Animated.spring(aY, { toValue: rect.y, ...SPRING }),
-              Animated.spring(aW, { toValue: rect.w, ...SPRING }),
-              Animated.spring(aH, { toValue: rect.h, ...SPRING }),
+              Animated.timing(aX, { toValue: rect.x, ...GLIDE }),
+              Animated.timing(aY, { toValue: rect.y, ...GLIDE }),
+              Animated.timing(aW, { toValue: rect.w, ...GLIDE }),
+              Animated.timing(aH, { toValue: rect.h, ...GLIDE }),
             ]).start();
           }
           hasSpot.current = true;
         }
         setSpot(rect);
         setReady(true);
-        // cosmetic entrance: small slide + pop. The card is already opaque.
-        slide.setValue(10); pop.setValue(0.97);
-        Animated.parallel([
-          Animated.spring(slide, { toValue: 0, tension: 80, friction: 10, useNativeDriver: false }),
-          Animated.spring(pop,   { toValue: 1, tension: 90, friction: 8,  useNativeDriver: false }),
-        ]).start();
+        // cosmetic entrance: a small slide. The card is already opaque.
+        slide.setValue(8);
+        Animated.timing(slide, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
         Animated.timing(dimFade, { toValue: 1, duration: 260, useNativeDriver: false }).start();
       });
-    }, 80);
+    }, hasSpot.current ? 16 : 80);
     return () => { cancelled = true; clearTimeout(t); clearTimeout(giveUp); };
-  }, [idx, visible, step, measure, aX, aY, aW, aH, dimFade, slide, pop]);
+  }, [idx, visible, step, measure, aX, aY, aW, aH, dimFade, slide]);
 
   // ── Close: hide immediately from React's point of view ──────────────────
   const finish = useCallback(() => {
@@ -234,7 +232,7 @@ export default function TutorialOverlay({
           }}
           style={[styles.cardWrap, {
             left: CARD_INSET, right: CARD_INSET, top: cardTop,
-            transform: [{ translateY: slide }, { scale: pop }],
+            transform: [{ translateY: slide }],
           }]}
         >
           <View style={[styles.card, { backgroundColor: cardBg }]}>
@@ -285,12 +283,14 @@ export default function TutorialOverlay({
 const styles = themed(() => ({
   root:     { ...StyleSheet.absoluteFillObject, zIndex: 9999, elevation: 9999 },
   dim:      { position: 'absolute', backgroundColor: DIM },
-  cardWrap: { position: 'absolute', zIndex: 30, elevation: 30 },
+  cardWrap: { position: 'absolute', zIndex: 30 },
   card: {
     borderRadius: 22, padding: 16,
+    // The dim behind already sets the card apart, so only a light shadow
+    borderWidth: IS_DARK ? 1 : 0, borderColor: 'rgba(255,255,255,0.08)',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 24 },
-      android: { elevation: 18 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.14, shadowRadius: 14 },
+      android: { elevation: 4 },
     }),
   },
   topRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },

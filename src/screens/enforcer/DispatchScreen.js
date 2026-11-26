@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  RefreshControl, StatusBar, Alert, Dimensions,
+  RefreshControl, StatusBar, Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LeafletMap from '../../components/LeafletMap';
@@ -20,6 +20,7 @@ import { useTutorial } from '../../context/TutorialContext';
 import { GradientFill } from '../../components/Gradient';
 import Icon from '../../components/Icon';
 import { COLORS, ROLE, SHADOW, RADIUS , FONTS, themed } from '../../theme';
+import { showAlert } from '../../components/Dialog';
 
 const T = ROLE.enforcer;
 const { height: H } = Dimensions.get('window');
@@ -120,16 +121,16 @@ export default function DispatchScreen({ navigation }) {
   }, [launchTutorial, stopTutorial]));
 
   const handleLogout = () =>
-    Alert.alert('End Shift', 'Log out of enforcer session?', [
+    showAlert('End your shift?', 'You will be logged out of Enforcer mode.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Log Out', style: 'destructive', onPress: logout },
-    ]);
+      { text: 'Log out', style: 'destructive', onPress: logout },
+    ], { icon: 'log-out-outline', tone: 'danger' });
 
   const handleSwitchRole = () =>
-    Alert.alert('Switch to Passenger Mode', 'This will end your enforcer session.', [
+    showAlert('Switch to Passenger mode?', 'This ends your enforcer session.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Switch', onPress: () => switchRole('passenger') },
-    ]);
+    ], { icon: 'swap-horizontal', tone: 'question' });
 
   const criticalCount = orders.filter(o => (o.violations || []).some(v => v.severity === 'critical')).length;
 
