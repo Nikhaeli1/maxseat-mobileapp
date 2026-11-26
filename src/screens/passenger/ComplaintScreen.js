@@ -157,7 +157,7 @@ export default function ComplaintScreen({ route, navigation }) {
         {/* DISCLAIMER */}
         <View style={[styles.disclaimer, { backgroundColor: T.primaryLight, borderColor: T.primaryMid }]}>
           <Text style={[styles.disclaimerText, { color: IS_DARK ? COLORS.textSecondary : T.primaryDark }]}>
-            Your report will be submitted to the LTFRB enforcement system. False reports may be penalized under LTFRB regulations.
+            Your report goes to LTFRB and to the cooperative that runs this PUV. You can follow it in My Reports. False reports may be penalized under LTFRB regulations.
           </Text>
         </View>
 

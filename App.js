@@ -22,8 +22,8 @@ import PuvDetailScreen  from './src/screens/passenger/PuvDetailScreen';
 import ComplaintScreen  from './src/screens/passenger/ComplaintScreen';
 
 // ── Enforcer ──────────────────────────────────────────────────────────────────
-import DispatchScreen from './src/screens/enforcer/DispatchScreen';
-import ActionScreen   from './src/screens/enforcer/ActionScreen';
+import EnforcerTabs from './src/navigation/EnforcerTabs';
+import ActionScreen from './src/screens/enforcer/ActionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -94,7 +94,7 @@ function RootNavigator() {
         ) : user.role === 'enforcer' ? (
           // ── Enforcer App ────────────────────────────────────────────────────
           <>
-            <Stack.Screen name="Dispatch" component={DispatchScreen} />
+            <Stack.Screen name="EnforcerTabs" component={EnforcerTabs} />
             <Stack.Screen
               name="Action"
               component={ActionScreen}
